@@ -18,7 +18,7 @@ sentry_sdk.init(
     dsn="https://cabf25877ece45a69ad91441702548e8@o4504883552780288.ingest.sentry.io/4505147905736704",
     traces_sample_rate=1.0,
     profiles_sample_rate=1.0,
-    environment='Development'
+    environment='Production'
 )
 app_folder_name = 'AutoPublisher'
 if not os.path.exists(f'{app_folder_name}//Logs'):
@@ -120,9 +120,10 @@ async def on_app_command_error(interaction: discord.Interaction, error: discord.
 #Message
 @bot.event
 async def on_message(message: discord.Message):
-    if message.author.bot:
+    if message.author == bot.user:
         return
-    await auto_publish(message)
+    if message.channel.is_news():
+        await auto_publish(message)
 
 
 #Functions
@@ -131,16 +132,16 @@ def seconds_to_minutes(input_int):
 
 async def auto_publish(message: discord.Message):
     channel = message.channel
-    if channel.is_news() and not message.author.bot:
-        try:
-            await message.publish()
-            await message.add_reaction("\U0001F4E2")
-        except discord.errors.Forbidden:
-            print(f"No permission to publish in {channel}.")
-            await message.add_reaction("\u26D4")
-        except Exception as e:
-            print(f"Error publishing message in {channel}: {e}")
-            await message.add_reaction("\u26A0")
+    try:
+        await message.add_reaction("\U0001F4E2")
+        await message.publish()
+        await message.remove_reaction("\U0001F4E2", bot.user)
+    except discord.errors.Forbidden:
+        print(f"No permission to publish in {channel}.")
+        await message.add_reaction("\u26D4")
+    except Exception as e:
+        print(f"Error publishing message in {channel}: {e}")
+        await message.add_reaction("\u26A0")
 
  
 ##Owner Commands
