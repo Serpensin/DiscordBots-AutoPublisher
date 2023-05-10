@@ -7,10 +7,11 @@ docker-build:
   services:
     - docker:dind
   script:
+    - export DOCKER_CLI_EXPERIMENTAL=enabled
+    - export DOCKER_TLS_VERIFY=0
     - docker login docker.bloodygang.com -u serpensin -p $DOCKER_PW
     - docker buildx create --use
     - sleep 2
-    - export DOCKER_CLI_EXPERIMENTAL=enabled
     - docker buildx build --build-arg BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ") --build-arg VERSION=${CI_COMMIT_TAG} --compress --no-cache --platform linux/386 -t docker.bloodygang.com/serpensin/autopublisher:latest-linux-386 --push . &
     - docker buildx build --build-arg BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ") --build-arg VERSION=${CI_COMMIT_TAG} --compress --no-cache --platform linux/amd64 -t docker.bloodygang.com/serpensin/autopublisher:latest-linux-amd64 --push . &
     - docker buildx build --build-arg BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ") --build-arg VERSION=${CI_COMMIT_TAG} --compress --no-cache --platform linux/arm/v6 -t docker.bloodygang.com/serpensin/autopublisher:latest-linux-arm-v6 --push . &
