@@ -7,11 +7,13 @@ docker-build:
   services:
     - docker:dind
   script:
-    - docker login -u serpensin -p $DOCKER_PW
+    - export DOCKER_CLI_EXPERIMENTAL=enabled
+    - docker login docker.bloodygang.com -u serpensin -p $DOCKER_PW
     - docker buildx create --use
     - sleep 2
-    - docker buildx build --build-arg BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ") --build-arg VERSION=${CI_COMMIT_TAG} --compress --no-cache --platform linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x -t serpensin/autopublisher:latest --push ./
-  timeout: 45m
+    - docker build --build-arg BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ") --build-arg VERSION=${CI_COMMIT_TAG} -t docker.bloodygang.com/serpensin/autopublisher --push .
+
+  timeout: 10m
 
 workflow:
   rules:
