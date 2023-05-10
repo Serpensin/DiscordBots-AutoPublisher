@@ -26,7 +26,7 @@ docker-build:
     - docker manifest annotate docker.bloodygang.com/serpensin/autopublisher:latest docker.bloodygang.com/serpensin/autopublisher:latest-linux-ppc64le --os linux --arch ppc64le
     - docker manifest annotate docker.bloodygang.com/serpensin/autopublisher:latest docker.bloodygang.com/serpensin/autopublisher:latest-linux-s390x --os linux --arch s390x
     - docker manifest push docker.bloodygang.com/serpensin/autopublisher:latest
-  timeout: 45m
+  timeout: 90m
 
 workflow:
   rules:
