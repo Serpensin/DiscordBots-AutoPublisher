@@ -48,7 +48,7 @@ manlogger.info('Engine powering up...')
 #Load env
 load_dotenv()
 TOKEN = os.getenv('TOKEN')
-ownerID = os.getenv('OWNER_ID')
+ownerID = os.getenv('owner_id')
 
 
 class aclient(discord.AutoShardedClient):
@@ -138,10 +138,8 @@ async def auto_publish(message: discord.Message):
         await message.remove_reaction("\U0001F4E2", bot.user)
     except discord.errors.Forbidden:
         print(f"No permission to publish in {channel}.")
-        await message.remove_reaction("\U0001F4E2", bot.user)
         await message.add_reaction("\u26D4")
     except Exception as e:
-        await message.remove_reaction("\U0001F4E2", bot.user)
         print(f"Error publishing message in {channel}: {e}")
         await message.add_reaction("\u26A0")
 
