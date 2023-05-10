@@ -11,7 +11,7 @@ docker-build:
     - docker login docker.bloodygang.com -u serpensin -p $DOCKER_PW
     - docker buildx create --use
     - sleep 2
-    - docker build --build-arg BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ") --build-arg VERSION=${CI_COMMIT_TAG} -f Dockerfile.amd64 -t docker.bloodygang.com/serpensin/autopublisher:latest-linux-amd64 .
+    - docker build --build-arg BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ") --build-arg VERSION=${CI_COMMIT_TAG} -f Dockerfile -t docker.bloodygang.com/serpensin/autopublisher:latest-linux-amd64 .
     - docker manifest annotate docker.bloodygang.com/serpensin/autopublisher:latest docker.bloodygang.com/serpensin/autopublisher:latest --os linux --arch amd64
     - docker manifest push docker.bloodygang.com/serpensin/autopublisher:latest
 
