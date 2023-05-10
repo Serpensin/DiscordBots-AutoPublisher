@@ -8,7 +8,6 @@ docker-build:
     - docker:dind
   script:
     - export DOCKER_CLI_EXPERIMENTAL=enabled
-    - export DOCKER_TLS_VERIFY=0
     - docker login docker.bloodygang.com -u serpensin -p $DOCKER_PW
     - docker buildx create --use
     - sleep 2
