@@ -11,7 +11,7 @@ docker-build:
     - docker login docker.bloodygang.com -u serpensin -p $DOCKER_PW
     - docker buildx create --use
     - sleep 2
-    - docker build --build-arg BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ") --build-arg VERSION=${CI_COMMIT_TAG} -t docker.bloodygang.com/serpensin/autopublisher .
+    - docker build --build-arg BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ") --build-arg VERSION=${CI_COMMIT_TAG} -t docker.bloodygang.com/serpensin/autopublisher --push .
 
   timeout: 10m
 
