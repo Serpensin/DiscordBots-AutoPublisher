@@ -18,7 +18,7 @@ RUN if [ "$TARGETPLATFORM" = "linux/arm/v6" ] || [ "$TARGETPLATFORM" = "linux/ar
 RUN pip install -r requirements.txt
 
 ARG BUILD_DATE
-ARG VERSION
+ARG VERSION=1.0.0
 
 LABEL maintainer="./𝕾𝖊𝖗𝖕𝖊𝖓𝖘𝖎𝖓.𝖘𝖍#0007"
 LABEL version=$VERSION
