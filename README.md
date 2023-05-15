@@ -60,3 +60,4 @@ serpensin/autopublisher
 
 - The bot can only publish 10 messages per hour per channel (just as users), this is rate limited by Discord!
 - If you want to temporarily stop the bot from publishing messages in any of your announcement channels, just disable its' `View Channel` permission in a desired channel and enable it back when you're ready.
+- You should run the /permissions command to see the permissions the bot needs to work properly. (`View Channel`, `Send Messages`, `Manage Messages` and `Read Message History`)
