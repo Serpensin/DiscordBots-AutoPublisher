@@ -1,0 +1,14 @@
+version: '3'
+services:
+  autopublisher:
+    container_name: AutoPublisher
+    image: serpensin/autopublisher
+    restart: any
+    environment:
+      - TOKEN=BOT_TOKEN
+      - OWNER_ID=DISCORD_ID_OF_OWNER
+    volumes:
+      - autopublisher_log:/app/AutoPublisher/Logs
+
+volumes:
+  autopublisher_log:
