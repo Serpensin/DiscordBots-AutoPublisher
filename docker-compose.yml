@@ -3,7 +3,7 @@ services:
   autopublisher:
     container_name: AutoPublisher
     image: serpensin/autopublisher
-    restart: any
+    restart: always
     environment:
       - TOKEN=BOT_TOKEN
       - OWNER_ID=DISCORD_ID_OF_OWNER
