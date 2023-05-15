@@ -227,6 +227,45 @@ if owner_available:
                 os.remove(buffer_folder+'Logs.zip')
 
 
+#tell user what permissions are required
+@tree.command(
+    name='permissions',
+    description='Tell what permissions are required or check if the bot has necessary permissions in a channel.'
+)
+@discord.app_commands.describe(choice='Choose an option.')
+@discord.app_commands.choices(choice=[
+    discord.app_commands.Choice(name="Explain permissions", value="explain"),
+    discord.app_commands.Choice(name="Check bot permissions", value="check")
+])
+async def permissions(interaction: discord.Interaction, choice: str, channel: discord.abc.GuildChannel = None):
+    if interaction.user.guild_permissions.manage_roles or interaction.user.guild_permissions.manage_channels:
+        if choice == 'explain':
+            await interaction.response.send_message('In order for this bot to be able to publish messages, he needs the following permissions for each channel he publishes messages for:\n`View Channel`, `Send Messages`, `Manage Messages` and `Read Message History`.', ephemeral=True)
+        elif choice == 'check':
+            if channel is None:
+                await interaction.response.send_message('Please specify a channel.', ephemeral=True)
+                return
+
+            if isinstance(channel, discord.TextChannel):
+                if not channel.is_news():
+                    await interaction.response.send_message('The specified channel is not an announcement channel.', ephemeral=True)
+                    return
+
+                perms = channel.permissions_for(interaction.guild.me)
+                needed_permissions = ['view_channel', 'send_messages', 'manage_messages', 'read_message_history', 'add_reactions']
+                missing_permissions = [perm for perm in needed_permissions if not getattr(perms, perm)]
+                
+                if not missing_permissions:
+                    await interaction.response.send_message('The bot has all the necessary permissions in this channel.', ephemeral=True)
+                else:
+                    await interaction.response.send_message(f'The bot is missing the following permissions in this channel: {", ".join(missing_permissions)}.', ephemeral=True)
+            else:
+                await interaction.response.send_message('Please specify a text channel.', ephemeral=True)
+    else:
+        await interaction.response.send_message('You need the `manage_roles` or `manage_channels` permission to use this command.', ephemeral=True)
+
+
+
 
 
 
