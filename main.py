@@ -14,8 +14,9 @@ from zipfile import ZIP_DEFLATED, ZipFile
 
 
 #Init
+load_dotenv()
 sentry_sdk.init(
-    dsn="https://cabf25877ece45a69ad91441702548e8@o4504883552780288.ingest.sentry.io/4505147905736704",
+    dsn=os.getenv('SENTRY_DSN'),
     traces_sample_rate=1.0,
     profiles_sample_rate=1.0,
     environment='Production'
@@ -46,7 +47,6 @@ manlogger.addHandler(handler)
 manlogger.info('Engine powering up...')
 
 #Load env
-load_dotenv()
 TOKEN = os.getenv('TOKEN')
 ownerID = os.environ.get('OWNER_ID')
 
