@@ -7,7 +7,7 @@ import os
 import platform
 import sentry_sdk
 import sys
-from datetime import timedelta
+from datetime import timedelta, datetime
 from dotenv import load_dotenv
 from zipfile import ZIP_DEFLATED, ZipFile
 
@@ -21,6 +21,7 @@ sentry_sdk.init(
     profiles_sample_rate=1.0,
     environment='Production'
 )
+bot_version = '1.1.0'
 app_folder_name = 'AutoPublisher'
 if not os.path.exists(f'{app_folder_name}//Logs'):
     os.makedirs(f'{app_folder_name}//Logs')
@@ -65,7 +66,7 @@ class aclient(discord.AutoShardedClient):
 
 
     async def on_ready(self):
-        global owner
+        global owner, start_time
         try:
             owner = await self.fetch_user(ownerID)
             if owner is None:
@@ -82,6 +83,7 @@ class aclient(discord.AutoShardedClient):
             self.synced = True
             await bot.change_presence(activity = discord.Activity(type=discord.ActivityType.watching, name='over News'), status = discord.Status.online)
         manlogger.info('All systems online...')
+        start_time = datetime.now()
         print('READY')
 bot = aclient()
 tree = discord.app_commands.CommandTree(bot)
@@ -227,12 +229,12 @@ if owner_available:
                 os.remove(buffer_folder+'Logs.zip')
 
 
-#tell user what permissions are required
+#Tell user what permissions are required
 @tree.command(
     name='permissions',
     description='Tell what permissions are required or check if the bot has necessary permissions in a channel.'
 )
-@discord.app_commands.describe(choice='Choose an option.')
+@discord.app_commands.describe(choice='Choose an option.', channel='Select channel.')
 @discord.app_commands.choices(choice=[
     discord.app_commands.Choice(name="Explain permissions", value="explain"),
     discord.app_commands.Choice(name="Check bot permissions", value="check")
@@ -265,6 +267,42 @@ async def permissions(interaction: discord.Interaction, choice: str, channel: di
         await interaction.response.send_message('You need the `manage_roles` or `manage_channels` permission to use this command.', ephemeral=True)
 
 
+#Bot Information
+@tree.command(name = 'botinfo', description = 'Get information about the bot.')
+async def self(interaction: discord.Interaction):
+    member_count = sum(guild.member_count for guild in bot.guilds)
+
+    embed = discord.Embed(
+        title=f"Informationen about {bot.user.name}",
+        color=discord.Color.blue()
+    )
+    embed.set_thumbnail(url=bot.user.avatar.url if bot.user.avatar else '')
+
+    embed.add_field(name="Created at", value=bot.user.created_at.strftime("%d.%m.%Y, %H:%M:%S"), inline=True)
+    embed.add_field(name="Bot-Version", value=bot_version, inline=True)
+    embed.add_field(name="Uptime", value=str(timedelta(seconds=int((datetime.now() - start_time).total_seconds()))), inline=True)
+
+    embed.add_field(name="Bot-Owner", value=f"<@!{ownerID}>", inline=True)
+    embed.add_field(name="\u200b", value="\u200b", inline=True)
+    embed.add_field(name="\u200b", value="\u200b", inline=True)
+
+    embed.add_field(name="Server", value=f"{len(bot.guilds)}", inline=True)
+    embed.add_field(name="Member count", value=str(member_count), inline=True)
+    embed.add_field(name="\u200b", value="\u200b", inline=True)
+
+    embed.add_field(name="Shards", value=f"{bot.shard_count}", inline=True)
+    embed.add_field(name="Shard ID", value=f"{interaction.guild.shard_id if interaction.guild else 'N/A'}", inline=True)
+    embed.add_field(name="\u200b", value="\u200b", inline=True)
+
+    embed.add_field(name="Python-Version", value=f"{platform.python_version()}", inline=True)
+    embed.add_field(name="discord.py-Version", value=f"{discord.__version__}", inline=True)
+    embed.add_field(name="Sentry-Version", value=f"{sentry_sdk.consts.VERSION}", inline=True)
+
+    embed.add_field(name="Repo", value=f"[GitLab](https://gitlab.bloodygang.com/Serpensin/autopublisher)", inline=True)
+    embed.add_field(name="Invite", value=f"[Invite me](https://discord.com/api/oauth2/authorize?client_id={bot.user.id}&permissions=0&scope=bot%20applications.commands)", inline=True)
+    embed.add_field(name="\u200b", value="\u200b", inline=True)  
+
+    await interaction.response.send_message(embed=embed)
 
 
 
