@@ -269,6 +269,7 @@ async def permissions(interaction: discord.Interaction, choice: str, channel: di
 
 #Bot Information
 @tree.command(name = 'botinfo', description = 'Get information about the bot.')
+@discord.app_commands.checks.cooldown(1, 60, key=lambda i: (i.user.id))
 async def self(interaction: discord.Interaction):
     member_count = sum(guild.member_count for guild in bot.guilds)
 
