@@ -8,6 +8,7 @@ services:
       - TOKEN=BOT_TOKEN
       - OWNER_ID=DISCORD_ID_OF_OWNER
       - SENTRY_DSN=SENTR_KEY
+      - SUPPORT_SERVER=DISCORD-ID-SUPPORTSERVER
     volumes:
       - autopublisher_log:/app/AutoPublisher/Logs
 

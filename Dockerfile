@@ -24,6 +24,6 @@ LABEL commit=$COMMIT
 LABEL description="AutoPublisher for messages in announcement-channels."
 LABEL release=$BUILD_DATE
 LABEL url="https://gitlab.bloodygang.com/Serpensin/autopublisher"
-LABEL VERSION="1.1.0"
+LABEL VERSION="1.2.0"
 
 CMD ["python3", "main.py"]

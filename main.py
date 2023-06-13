@@ -21,7 +21,7 @@ sentry_sdk.init(
     profiles_sample_rate=1.0,
     environment='Production'
 )
-bot_version = '1.1.0'
+bot_version = '1.2.0'
 app_folder_name = 'AutoPublisher'
 if not os.path.exists(f'{app_folder_name}//Logs'):
     os.makedirs(f'{app_folder_name}//Logs')
@@ -50,6 +50,7 @@ manlogger.info('Engine powering up...')
 #Load env
 TOKEN = os.getenv('TOKEN')
 ownerID = os.environ.get('OWNER_ID')
+support_id = os.getenv('SUPPORT_SERVER')
 
 
 class aclient(discord.AutoShardedClient):
@@ -91,6 +92,7 @@ tree = discord.app_commands.CommandTree(bot)
 
 # Check if all required variables are set
 owner_available = bool(ownerID)
+support_available = bool(support_id)
 
 #Fix error on windows on shutdown
 if platform.system() == 'Windows':
@@ -114,7 +116,7 @@ async def on_guild_join(guild):
 @tree.error
 async def on_app_command_error(interaction: discord.Interaction, error: discord.app_commands.AppCommandError) -> None:
     if isinstance(error, discord.app_commands.CommandOnCooldown):
-        await interaction.response.send_message(f'This comand is on cooldown.\nTime left: `{seconds_to_minutes(error.retry_after)}`.', ephemeral = True)
+        await interaction.response.send_message(f'This comand is on cooldown.\nTime left: `{Functions.seconds_to_minutes(error.retry_after)}`.', ephemeral = True)
         manlogger.warning(f'{error} {interaction.user.name} | {interaction.user.id}')
     else:
         await interaction.response.send_message(error, ephemeral = True)
@@ -125,25 +127,57 @@ async def on_message(message: discord.Message):
     if message.author == bot.user:
         return
     if message.channel.is_news():
-        await auto_publish(message)
+        await Functions.auto_publish(message)
 
 
 #Functions
-def seconds_to_minutes(input_int):
-    return(str(timedelta(seconds=input_int)))
+class Functions():
+    def seconds_to_minutes(input_int):
+        return(str(timedelta(seconds=input_int)))
+    
+    async def auto_publish(message: discord.Message):
+        channel = message.channel
+        try:
+            await message.add_reaction("\U0001F4E2")
+            await message.publish()
+            await message.remove_reaction("\U0001F4E2", bot.user)
+        except discord.errors.Forbidden:
+            print(f"No permission to publish in {channel}.")
+            await message.add_reaction("\u26D4")
+        except Exception as e:
+            print(f"Error publishing message in {channel}: {e}")
+            await message.add_reaction("\u26A0")
 
-async def auto_publish(message: discord.Message):
-    channel = message.channel
-    try:
-        await message.add_reaction("\U0001F4E2")
-        await message.publish()
-        await message.remove_reaction("\U0001F4E2", bot.user)
-    except discord.errors.Forbidden:
-        print(f"No permission to publish in {channel}.")
-        await message.add_reaction("\u26D4")
-    except Exception as e:
-        print(f"Error publishing message in {channel}: {e}")
-        await message.add_reaction("\u26A0")
+    async def create_support_invite(interaction):
+        try:
+            guild = bot.get_guild(int(support_id))
+        except ValueError:
+            return "Could not find support guild."
+        if guild is None:
+            return "Could not find support guild."
+        if not guild.text_channels:
+            return "Support guild has no text channels."
+        try:
+            member = await guild.fetch_member(interaction.user.id)
+        except discord.NotFound:
+            member = None
+        if member is not None:
+            return "You are already in the support guild."
+        channels: discord.TextChannel = guild.text_channels
+        for channel in channels:
+            try:
+                invite: discord.Invite = await channel.create_invite(
+                    reason=f"Created invite for {interaction.user.name} from server {interaction.guild.name} ({interaction.guild_id})",
+                    max_age=60,
+                    max_uses=1,
+                    unique=True
+                )
+                return invite.url
+            except discord.Forbidden:
+                continue
+            except discord.HTTPException:
+                continue
+        return "Could not create invite. There is either no text-channel, or I don't have the rights to create an invite."
 
  
 ##Owner Commands
@@ -229,6 +263,18 @@ if owner_available:
                 os.remove(buffer_folder+'Logs.zip')
 
 
+#Support Invite
+if support_available:
+    @tree.command(name = 'support', description = 'Get invite to our support server.')
+    @discord.app_commands.checks.cooldown(1, 60, key=lambda i: (i.user.id))
+    async def self(interaction: discord.Interaction):
+        if str(interaction.guild.id) != support_id:
+            await interaction.response.defer(ephemeral = True)
+            await interaction.followup.send(await Functions.create_support_invite(interaction), ephemeral = True)
+        else:
+            await interaction.response.send_message('You are already in our support server!', ephemeral = True)
+
+
 #Tell user what permissions are required
 @tree.command(
     name='permissions',
@@ -312,5 +358,14 @@ async def self(interaction: discord.Interaction):
 
 
 
-bot.run(TOKEN, log_handler=None)
+if __name__ == '__main__':
+	if not TOKEN:
+		manlogger.critical('Missing token. Please check your .env file.')
+		sys.exit('Missing token. Please check your .env file.')
+	else:
+		try:
+			bot.run(TOKEN, log_handler=None)
+		except discord.errors.LoginFailure:
+			manlogger.critical('Invalid token. Please check your .env file.')
+			sys.exit('Invalid token. Please check your .env file.')
 
