@@ -14,6 +14,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 
 
 #Init
+discord.VoiceClient.warn_nacl = False
 load_dotenv()
 sentry_sdk.init(
     dsn=os.getenv('SENTRY_DSN'),
