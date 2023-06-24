@@ -21,9 +21,9 @@ RUN pip install -r requirements.txt
 
 LABEL maintainer="./𝕾𝖊𝖗𝖕𝖊𝖓𝖘𝖎𝖓.𝖘𝖍#0007"
 LABEL commit=$COMMIT
-LABEL description="AutoPublisher for messages in announcement-channels."
+LABEL description="Discord: the_devil_of_the_rhine (863687441809801246)"
 LABEL release=$BUILD_DATE
 LABEL url="https://gitlab.bloodygang.com/Serpensin/autopublisher"
-LABEL VERSION="1.2.0"
+LABEL VERSION="1.2.1"
 
 CMD ["python3", "main.py"]

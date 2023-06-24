@@ -23,7 +23,7 @@ sentry_sdk.init(
 	profiles_sample_rate=1.0,
 	environment='Production'
 )
-bot_version = '1.2.0'
+bot_version = '1.2.1'
 app_folder_name = 'AutoPublisher'
 if not os.path.exists(f'{app_folder_name}//Logs'):
 	os.makedirs(f'{app_folder_name}//Logs')
@@ -64,7 +64,8 @@ class aclient(discord.AutoShardedClient):
 
 		super().__init__(owner_id = ownerID,
 							  intents = intents,
-							  status = discord.Status.invisible
+							  status = discord.Status.invisible,
+							  auto_reconnect = True
 						)
 		self.synced = False
 
