@@ -1,4 +1,5 @@
 ﻿#Import
+print("Loading...")
 import asyncio
 import discord
 import logging
@@ -23,7 +24,7 @@ sentry_sdk.init(
 	profiles_sample_rate=1.0,
 	environment='Production'
 )
-bot_version = '1.2.1'
+bot_version = '1.2.2'
 app_folder_name = 'AutoPublisher'
 if not os.path.exists(f'{app_folder_name}//Logs'):
 	os.makedirs(f'{app_folder_name}//Logs')
@@ -95,6 +96,7 @@ class aclient(discord.AutoShardedClient):
 			
 		manlogger.info('All systems online...')
 		start_time = datetime.now()
+		clear()
 		print('READY')
 bot = aclient()
 tree = discord.app_commands.CommandTree(bot)
@@ -135,7 +137,7 @@ async def on_app_command_error(interaction: discord.Interaction, error: discord.
 async def on_message(message: discord.Message):
 	if message.author == bot.user:
 		return
-	if message.channel.is_news():
+	if message.channel.type == discord.ChannelType.news:
 		await Functions.auto_publish(message)
 
 
@@ -328,10 +330,12 @@ async def permissions(interaction: discord.Interaction, choice: str, channel: di
 				needed_permissions = ['view_channel', 'send_messages', 'manage_messages', 'read_message_history', 'add_reactions']
 				missing_permissions = [perm for perm in needed_permissions if not getattr(perms, perm)]
 				
-				if not missing_permissions:
+				if interaction.guild.me.guild_permissions.administrator:
+					await interaction.response.send_message('The bot has Administrator, so he has all the necessary permissions in this channel.', ephemeral=True)
+				elif not missing_permissions:
 					await interaction.response.send_message('The bot has all the necessary permissions in this channel.', ephemeral=True)
 				else:
-					await interaction.response.send_message(f'The bot is missing the following permissions in this channel: {", ".join(missing_permissions)}.', ephemeral=True)
+					await interaction.response.send_message(f'The bot is missing the following permissions in this channel: {", ".join(missing_permissions)}.\nYou can also give him Administrator.', ephemeral=True)
 			else:
 				await interaction.response.send_message('Please specify a text channel.', ephemeral=True)
 	else:
