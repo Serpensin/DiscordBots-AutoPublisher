@@ -71,6 +71,30 @@ class aclient(discord.AutoShardedClient):
 		self.synced = False
 
 
+	async def on_guild_remove(self, guild):
+		manlogger.info(f'I got kicked from {guild}. (ID: {guild.id})')
+
+
+	async def on_guild_join(self, guild):
+		manlogger.info(f'I joined {guild}. (ID: {guild.id})')   
+
+
+	async def on_app_command_error(self, interaction: discord.Interaction, error: discord.app_commands.AppCommandError) -> None:
+		if isinstance(error, discord.app_commands.CommandOnCooldown):
+			await interaction.response.send_message(f'This comand is on cooldown.\nTime left: `{Functions.seconds_to_minutes(error.retry_after)}`.', ephemeral = True)
+			manlogger.warning(f'{error} {interaction.user.name} | {interaction.user.id}')
+		else:
+			await interaction.response.send_message(error, ephemeral = True)
+			manlogger.warning(f'{error} {interaction.user.name} | {interaction.user.id}')
+
+
+	async def on_message(self, message: discord.Message):
+		if message.author == bot.user:
+			return
+		if message.channel.type == discord.ChannelType.news:
+			await Functions.auto_publish(message)
+
+
 	async def on_ready(self):
 		global owner, start_time, shutdown
 		shutdown = False
@@ -100,6 +124,8 @@ class aclient(discord.AutoShardedClient):
 		print('READY')
 bot = aclient()
 tree = discord.app_commands.CommandTree(bot)
+tree.on_error = bot.on_app_command_error
+
 
 
 # Check if all required variables are set
@@ -114,31 +140,6 @@ def clear():
 	else:
 		os.system('clear')
 
-##Events
-#Guild Remove
-@bot.event
-async def on_guild_remove(guild):
-	manlogger.info(f'I got kicked from {guild}. (ID: {guild.id})')
-#Guild Join
-@bot.event
-async def on_guild_join(guild):
-	manlogger.info(f'I joined {guild}. (ID: {guild.id})')   
-#Error
-@tree.error
-async def on_app_command_error(interaction: discord.Interaction, error: discord.app_commands.AppCommandError) -> None:
-	if isinstance(error, discord.app_commands.CommandOnCooldown):
-		await interaction.response.send_message(f'This comand is on cooldown.\nTime left: `{Functions.seconds_to_minutes(error.retry_after)}`.', ephemeral = True)
-		manlogger.warning(f'{error} {interaction.user.name} | {interaction.user.id}')
-	else:
-		await interaction.response.send_message(error, ephemeral = True)
-		manlogger.warning(f'{error} {interaction.user.name} | {interaction.user.id}')
-#Message
-@bot.event
-async def on_message(message: discord.Message):
-	if message.author == bot.user:
-		return
-	if message.channel.type == discord.ChannelType.news:
-		await Functions.auto_publish(message)
 
 
 #Functions
