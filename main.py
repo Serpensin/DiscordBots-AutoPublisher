@@ -91,7 +91,7 @@ class aclient(discord.AutoShardedClient):
         if message.author == bot.user:
             return
         if message.channel.type == discord.ChannelType.news:
-            message_types = [6, 19]
+            message_types = [6, 19, 20]
             if message.type.value in message_types:
                 return
             await Functions.auto_publish(message)
