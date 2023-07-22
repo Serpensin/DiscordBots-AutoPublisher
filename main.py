@@ -1,5 +1,6 @@
 ﻿#Import
 print("Loading...")
+import aiohttp
 import asyncio
 import discord
 import logging
@@ -8,7 +9,6 @@ import os
 import platform
 import sentry_sdk
 import sys
-import topgg
 from datetime import timedelta, datetime
 from dotenv import load_dotenv
 from zipfile import ZIP_DEFLATED, ZipFile
@@ -117,8 +117,7 @@ class aclient(discord.AutoShardedClient):
             await bot.change_presence(activity = discord.Activity(type=discord.ActivityType.watching, name='over News'), status = discord.Status.online)
 
         if topgg_token:
-            bot.topggpy = topgg.DBLClient(bot, topgg_token)
-            bot.loop.create_task(Functions.update_topgg())
+            bot.loop.create_task(update_stats.topgg())
 
         manlogger.info('All systems online...')
         start_time = datetime.now()
@@ -141,6 +140,24 @@ def clear():
         os.system('cls')
     else:
         os.system('clear')
+
+
+
+class update_stats():
+    async def topgg():
+        headers = {
+            'Authorization': topgg_token,
+            'Content-Type': 'application/json'
+        }
+        while not shutdown:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(f'https://top.gg/api/bots/{bot.user.id}/stats', headers=headers, json={'server_count': len(bot.guilds), 'shard_count': len(bot.shards)}) as resp:
+                    if resp.status != 200:
+                        manlogger.error(f'Failed to update top.gg: {resp.status} {resp.reason}')
+            try:
+                await asyncio.sleep(60*30)
+            except asyncio.CancelledError:
+                pass
 
 
 
@@ -201,15 +218,6 @@ class Functions():
             except discord.HTTPException:
                 continue
         return "Could not create invite. There is either no text-channel, or I don't have the rights to create an invite."
-
-
-    async def update_topgg():
-        while not shutdown:
-            await bot.topggpy.post_guild_count()
-            try:
-                await asyncio.sleep(60*30)
-            except asyncio.CancelledError:
-                pass
 
 
 
