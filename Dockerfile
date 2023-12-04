@@ -1,4 +1,4 @@
-﻿FROM python:3.9.17-alpine
+﻿FROM python:3.9.18-alpine
 
 WORKDIR /app
 
@@ -28,6 +28,6 @@ LABEL maintainer="Discord: the_devil_of_the_rhine (863687441809801246)" \
       description="This bot automatically publishes messages in announcement channels on discord." \
       release=$BUILD_DATE \
       url="https://gitlab.bloodygang.com/Serpensin/autopublisher" \
-      version="1.2.3"
+      version="1.3.0"
 
 CMD ["python3", "main.py"]
