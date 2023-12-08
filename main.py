@@ -26,7 +26,7 @@ sentry_sdk.init(
     profiles_sample_rate=1.0,
     environment='Production'
 )
-bot_version = '1.3.0'
+bot_version = '1.3.1'
 app_folder_name = 'AutoPublisher'
 bot_name = 'AutoPublisher'
 if not os.path.exists(f'{app_folder_name}//Logs'):
@@ -224,6 +224,7 @@ class aclient(discord.AutoShardedClient):
 
     async def on_ready(self):
         if self.initialized:
+            await bot.change_presence(activity = self.Presence.get_activity(), status = self.Presence.get_status())
             return
         global owner, start_time, shutdown
         shutdown = False
