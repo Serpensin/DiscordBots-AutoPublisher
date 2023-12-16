@@ -13,6 +13,7 @@ import sentry_sdk
 import sys
 from datetime import timedelta, datetime
 from dotenv import load_dotenv
+from urllib.parse import urlparse
 from zipfile import ZIP_DEFLATED, ZipFile
 
 
@@ -26,7 +27,7 @@ sentry_sdk.init(
     profiles_sample_rate=1.0,
     environment='Production'
 )
-bot_version = '1.3.1'
+bot_version = '1.3.2'
 app_folder_name = 'AutoPublisher'
 bot_name = 'AutoPublisher'
 if not os.path.exists(f'{app_folder_name}//Logs'):
@@ -417,16 +418,25 @@ class Owner():
             await message.channel.send('```'
                                        'activity [playing/streaming/listening/watching/competing] [title] (url) - Set the activity of the bot\n'
                                        '```')
+        def isURL(zeichenkette):
+            try:
+                ergebnis = urlparse(zeichenkette)
+                return all([ergebnis.scheme, ergebnis.netloc])
+            except:
+                return False
+
+        def remove_and_save(liste):
+            if liste and isURL(liste[-1]):
+                return liste.pop()
+            else:
+                return None
 
         if args == []:
             await __wrong_selection()
             return
         action = args[0].lower()
+        url = remove_and_save(args[1:])
         title = ' '.join(args[1:])
-        try:
-            url = args[2]
-        except IndexError:
-            url = ''
         print(title)
         print(url)
         with open(activity_file, 'r', encoding='utf8') as f:
