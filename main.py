@@ -27,7 +27,7 @@ sentry_sdk.init(
     profiles_sample_rate=1.0,
     environment='Production'
 )
-bot_version = '1.3.3'
+bot_version = '1.4.0'
 app_folder_name = 'AutoPublisher'
 bot_name = 'AutoPublisher'
 if not os.path.exists(f'{app_folder_name}//Logs'):
