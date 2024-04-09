@@ -3,14 +3,14 @@ services:
   autopublisher:
     container_name: AutoPublisher
     image: serpensin/autopublisher
-    restart: always
+    restart: unless-stopped
     environment:
       - TOKEN=BOT_TOKEN
       - OWNER_ID=DISCORD_ID_OF_OWNER
       - SENTRY_DSN=SENTR_KEY
       - SUPPORT_SERVER=DISCORD-ID-SUPPORTSERVER
     volumes:
-      - autopublisher_log:/app/AutoPublisher/Logs
+      - log:/app/AutoPublisher/Logs
 
 volumes:
-  autopublisher_log:
+  log:

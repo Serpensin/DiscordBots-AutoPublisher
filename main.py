@@ -11,6 +11,8 @@ import os
 import platform
 import sentry_sdk
 import sys
+from aiohttp import web
+from CustomModules import bot_directory
 from datetime import timedelta, datetime
 from dotenv import load_dotenv
 from urllib.parse import urlparse
@@ -27,7 +29,7 @@ sentry_sdk.init(
     profiles_sample_rate=1.0,
     environment='Production'
 )
-bot_version = '1.4.1'
+bot_version = '1.5.0'
 app_folder_name = 'AutoPublisher'
 bot_name = 'AutoPublisher'
 if not os.path.exists(f'{app_folder_name}//Logs'):
@@ -245,8 +247,12 @@ class aclient(discord.AutoShardedClient):
             self.synced = True
             await bot.change_presence(activity = self.Presence.get_activity(), status = self.Presence.get_status())
 
-        if topgg_token:
-            bot.loop.create_task(update_stats.topgg())
+        #Start background tasks
+        stats = bot_directory.Stats(bot=bot,
+                                    logger=manlogger,
+                                    TOPGG_TOKEN=topgg_token)
+        bot.loop.create_task(Functions.health_server())
+        bot.loop.create_task(stats.task())
 
         manlogger.info('All systems online...')
         start_time = datetime.now()
@@ -273,29 +279,25 @@ def clear():
 
 
 
-class update_stats():
-    async def topgg():
-        headers = {
-            'Authorization': topgg_token,
-            'Content-Type': 'application/json'
-        }
-        while not shutdown:
-            async with aiohttp.ClientSession() as session:
-                async with session.post(f'https://top.gg/api/bots/{bot.user.id}/stats', headers=headers, json={'server_count': len(bot.guilds), 'shard_count': len(bot.shards)}) as resp:
-                    if resp.status != 200:
-                        manlogger.error(f'Failed to update top.gg: {resp.status} {resp.reason}')
-            try:
-                await asyncio.sleep(60*30)
-            except asyncio.CancelledError:
-                pass
-
-
-
 #Functions
 class Functions():
+    async def health_server():
+        async def __health_check(request):
+            return web.Response(text="Healthy")
+
+        app = web.Application()
+        app.router.add_get('/health', __health_check)
+        runner = web.AppRunner(app)
+        await runner.setup()
+        site = web.TCPSite(runner, '0.0.0.0', 5000)
+        try:
+            await site.start()
+        except OSError as e:
+            manlogger.warning(f'Error while starting health server: {e}')
+            print(f'Error while starting health server: {e}')
+
     def seconds_to_minutes(input_int):
         return(str(timedelta(seconds=input_int)))
-
 
     async def auto_publish(message: discord.Message):
         channel = message.channel
@@ -316,7 +318,6 @@ class Functions():
             await message.remove_reaction("\U0001F4E2", bot.user)
             if permissions.add_reactions:
                 await message.add_reaction("\u26D4")
-
 
     async def create_support_invite(interaction):
         try:
