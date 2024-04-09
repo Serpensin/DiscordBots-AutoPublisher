@@ -2,6 +2,7 @@
 
 WORKDIR /app
 
+COPY CustomModules ./CustomModules
 COPY *.py .
 COPY requirements.txt .
 
