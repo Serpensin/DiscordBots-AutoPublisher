@@ -29,7 +29,7 @@ sentry_sdk.init(
     profiles_sample_rate=1.0,
     environment='Production'
 )
-bot_version = '1.5.0'
+bot_version = '1.5.1'
 app_folder_name = 'AutoPublisher'
 bot_name = 'AutoPublisher'
 if not os.path.exists(f'{app_folder_name}//Logs'):
@@ -265,6 +265,18 @@ tree.on_error = bot.on_app_command_error
 
 
 
+class SignalHandler:
+    def __init__(self):
+        signal.signal(signal.SIGINT, self._shutdown)
+        signal.signal(signal.SIGTERM, self._shutdown)
+
+    def _shutdown(self, signum, frame):
+        manlogger.info('Received signal to shutdown...')
+        pt('Received signal to shutdown...')
+        bot.loop.create_task(Owner.shutdown(owner))
+
+
+
 # Check if all required variables are set
 support_available = bool(support_id)
 
@@ -413,7 +425,6 @@ class Owner():
                 os.remove(buffer_folder+'log-lines.txt')
             return
 
-
     async def activity(message, args):
         async def __wrong_selection():
             await message.channel.send('```'
@@ -470,7 +481,6 @@ class Owner():
         await bot.change_presence(activity = bot.Presence.get_activity(), status = bot.Presence.get_status())
         await message.channel.send(f'Activity set to {action} {title}{" " + url if url else ""}.')
 
-
     async def status(message, args):
         async def __wrong_selection():
             await message.channel.send('```'
@@ -499,11 +509,13 @@ class Owner():
         await bot.change_presence(activity = bot.Presence.get_activity(), status = bot.Presence.get_status())
         await message.channel.send(f'Status set to {action}.')
 
-
     async def shutdown(message):
         global shutdown
         manlogger.info('Engine powering down...')
-        await message.channel.send('Engine powering down...')
+        try:
+            await message.channel.send('Engine powering down...')
+        except:
+            await owner.send('Engine powering down...')
         await bot.change_presence(status=discord.Status.invisible)
         shutdown = True
 
@@ -618,6 +630,7 @@ if __name__ == '__main__':
         sys.exit(error_message)
     else:
         try:
+            SignalHandler()
             bot.run(TOKEN, log_handler=None)
         except discord.errors.LoginFailure:
             error_message = 'Invalid token. Please check your .env file.'

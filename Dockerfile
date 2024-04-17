@@ -29,6 +29,6 @@ LABEL maintainer="Discord: the_devil_of_the_rhine (863687441809801246)" \
       description="This bot automatically publishes messages in announcement channels on discord." \
       release=$BUILD_DATE \
       url="https://gitlab.bloodygang.com/Serpensin/autopublisher" \
-      version="1.5.0"
+      version="1.5.1"
 
 CMD ["python3", "main.py"]
