@@ -11,7 +11,7 @@
     <OutputPath>.</OutputPath>
     <Name>Discord-Bot-AutoPublisher</Name>
     <RootNamespace>Discord-Bot-AutoPublisher</RootNamespace>
-    <InterpreterId>MSBuild|env|$(MSBuildProjectFullPath)</InterpreterId>
+    <InterpreterId>MSBuild|AutoPublisher|$(MSBuildProjectFullPath)</InterpreterId>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -29,18 +29,18 @@
     <Content Include="requirements.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Interpreter Include="env\">
-      <Id>env</Id>
+    <Folder Include="CustomModules\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Interpreter Include="..\..\Venvs\AutoPublisher\">
+      <Id>AutoPublisher</Id>
       <Version>0.0</Version>
-      <Description>env (Python 3.12 (64-bit))</Description>
+      <Description>AutoPublisher (Python 3.12 (64-bit))</Description>
       <InterpreterPath>Scripts\python.exe</InterpreterPath>
       <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
       <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
       <Architecture>X64</Architecture>
     </Interpreter>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="CustomModules\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
