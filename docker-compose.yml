@@ -9,6 +9,7 @@ services:
       - OWNER_ID=DISCORD_ID_OF_OWNER
       - SENTRY_DSN=SENTR_KEY
       - SUPPORT_SERVER=DISCORD-ID-SUPPORTSERVER
+      - LOG_LEVEL=Info
     volumes:
       - log:/app/AutoPublisher/Logs
 

@@ -23,6 +23,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="CustomModules\bot_directory.py" />
+    <Compile Include="CustomModules\log_handler.py" />
     <Compile Include="main.py" />
   </ItemGroup>
   <ItemGroup>

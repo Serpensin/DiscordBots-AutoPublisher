@@ -1,12 +1,10 @@
 ﻿#Import
-print("Loading...")
-import aiohttp
+import time
+startupTime_start = time.time()
 import asyncio
 import discord
 import json
 import jsonschema
-import logging
-import logging.handlers
 import os
 import platform
 import sentry_sdk
@@ -14,6 +12,7 @@ import signal
 import sys
 from aiohttp import web
 from CustomModules import bot_directory
+from CustomModules import log_handler
 from datetime import timedelta, datetime
 from dotenv import load_dotenv
 from urllib.parse import urlparse
@@ -30,39 +29,29 @@ sentry_sdk.init(
     profiles_sample_rate=1.0,
     environment='Production'
 )
-bot_version = '1.5.1'
+bot_version = '1.6.0'
 app_folder_name = 'AutoPublisher'
 bot_name = 'AutoPublisher'
 if not os.path.exists(f'{app_folder_name}//Logs'):
     os.makedirs(f'{app_folder_name}//Logs')
 if not os.path.exists(f'{app_folder_name}//Buffer'):
     os.makedirs(f'{app_folder_name}//Buffer')
-log_folder = f'{app_folder_name}//Logs//'
-buffer_folder = f'{app_folder_name}//Buffer//'
-logger = logging.getLogger('discord')
-manlogger = logging.getLogger('Program')
-logger.setLevel(logging.INFO)
-manlogger.setLevel(logging.INFO)
-logging.getLogger('discord.http').setLevel(logging.INFO)
-handler = logging.handlers.TimedRotatingFileHandler(
-    filename = f'{log_folder}{bot_name}.log',
-    encoding = 'utf-8',
-    when = 'midnight',
-    backupCount = 27
-    )
-dt_fmt = '%Y-%m-%d %H:%M:%S'
-formatter = logging.Formatter('[{asctime}] [{levelname:<8}] {name}: {message}', dt_fmt, style='{')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-manlogger.addHandler(handler)
-manlogger.info('Engine powering up...')
 activity_file = os.path.join(app_folder_name, 'activity.json')
-
+    
 #Load env
 TOKEN = os.getenv('TOKEN')
 ownerID = os.environ.get('OWNER_ID')
 support_id = os.getenv('SUPPORT_SERVER')
 topgg_token = os.getenv('TOPGG_TOKEN')
+LOG_LEVEL = os.getenv('LOG_LEVEL')
+
+# Set-up Logging
+log_folder = f'{app_folder_name}//Logs//'
+buffer_folder = f'{app_folder_name}//Buffer//'
+log_manager = log_handler.LogManager(log_folder, bot_name, LOG_LEVEL)
+discord_logger = log_manager.get_logger('discord')
+program_logger = log_manager.get_logger('Program')
+program_logger.info('Engine powering up...')
 
 
 #Create activity.json if not exists
@@ -100,10 +89,10 @@ class JSONValidator:
                     data = json.load(file)
                     jsonschema.validate(instance=data, schema=self.schema)  # validate the data
                 except jsonschema.exceptions.ValidationError as ve:
-                    print(f'ValidationError: {ve}')
+                    program_logger.debug(f'ValidationError: {ve}')
                     self.write_default_content()
                 except json.decoder.JSONDecodeError as jde:
-                    print(f'JSONDecodeError: {jde}')
+                    program_logger.debug(f'JSONDecodeError: {jde}')
                     self.write_default_content()
         else:
             self.write_default_content()
@@ -164,20 +153,50 @@ class aclient(discord.AutoShardedClient):
 
 
     async def on_guild_remove(self, guild):
-        manlogger.info(f'I got kicked from {guild}. (ID: {guild.id})')
+        program_logger.info(f'I got kicked from {guild}. (ID: {guild.id})')
 
 
     async def on_guild_join(self, guild):
-        manlogger.info(f'I joined {guild}. (ID: {guild.id})')
+        program_logger.info(f'I joined {guild}. (ID: {guild.id})')
 
 
     async def on_app_command_error(self, interaction: discord.Interaction, error: discord.app_commands.AppCommandError) -> None:
+        options = interaction.data.get("options")
+        option_values = ""
+        if options:
+            for option in options:
+                option_values += f"{option['name']}: {option['value']}"
         if isinstance(error, discord.app_commands.CommandOnCooldown):
-            await interaction.response.send_message(f'This comand is on cooldown.\nTime left: `{Functions.seconds_to_minutes(error.retry_after)}`.', ephemeral = True)
-            manlogger.warning(f'{error} {interaction.user.name} | {interaction.user.id}')
+            await interaction.response.send_message(f'This command is on cooldown.\nTime left: `{str(datetime.timedelta(seconds=int(error.retry_after)))}`', ephemeral=True)
+            return
+        if isinstance(error, discord.app_commands.MissingPermissions):
+            await interaction.response.send_message(f'You are missing the following permissions: `{", ".join(error.missing_permissions)}`', ephemeral=True)
+            return
         else:
-            await interaction.response.send_message(error, ephemeral = True)
-            manlogger.warning(f'{error} {interaction.user.name} | {interaction.user.id}')
+            try:
+                try:
+                    await interaction.response.send_message(f"Error! Try again.", ephemeral=True)
+                except:
+                    try:
+                        await interaction.followup.send(f"Error! Try again.", ephemeral=True)
+                    except:
+                        pass
+            except discord.Forbidden:
+                try:
+                    await interaction.followup.send(f"{error}\n\n{option_values}", ephemeral=True)
+                except discord.NotFound:
+                    try:
+                        await interaction.response.send_message(f"{error}\n\n{option_values}", ephemeral=True)
+                    except discord.NotFound:
+                        pass
+                except Exception as e:
+                    program_logger.warning(f"Unexpected error while sending message: {e}")
+            finally:
+                try:
+                    program_logger.warning(f"{error} -> {option_values} | Invoked by {interaction.user.name} ({interaction.user.id}) @ {interaction.guild.name} ({interaction.guild.id}) with Language {interaction.locale[1]}")
+                except AttributeError:
+                    program_logger.warning(f"{error} -> {option_values} | Invoked by {interaction.user.name} ({interaction.user.id}) with Language {interaction.locale[1]}")
+                sentry_sdk.capture_exception(error)
 
 
     async def on_message(self, message: discord.Message):
@@ -200,7 +219,7 @@ class aclient(discord.AutoShardedClient):
             await Functions.auto_publish(message)
         if message.guild is None and message.author.id == int(ownerID):
             args = message.content.split(' ')
-            print(args)
+            program_logger.debug(args)
             command, *args = args
             if command == 'help':
                 await __wrong_selection()
@@ -235,31 +254,32 @@ class aclient(discord.AutoShardedClient):
         try:
             owner = await self.fetch_user(ownerID)
             if owner is None:
-                manlogger.critical(f"Invalid ownerID: {ownerID}")
+                program_logger.critical(f"Invalid ownerID: {ownerID}")
                 sys.exit(f"Invalid ownerID: {ownerID}")
         except discord.HTTPException as e:
-            manlogger.critical(f"Error fetching owner user: {e}")
+            program_logger.critical(f"Error fetching owner user: {e}")
             sys.exit(f"Error fetching owner user: {e}")
-        logger.info(f'Logged in as {bot.user} (ID: {bot.user.id})')
+        discord_logger.info(f'Logged in as {bot.user} (ID: {bot.user.id})')
         if not self.synced:
-            manlogger.info('Syncing...')
+            program_logger.info('Syncing...')
             await tree.sync()
-            manlogger.info('Synced.')
+            program_logger.info('Synced.')
             self.synced = True
             await bot.change_presence(activity = self.Presence.get_activity(), status = self.Presence.get_status())
 
         #Start background tasks
         stats = bot_directory.Stats(bot=bot,
-                                    logger=manlogger,
+                                    logger=program_logger,
                                     TOPGG_TOKEN=topgg_token)
         bot.loop.create_task(Functions.health_server())
         bot.loop.create_task(stats.task())
 
-        manlogger.info('All systems online...')
+        program_logger.info('All systems online...')
         start_time = datetime.now()
         clear()
         self.initialized = True
-        print('READY')
+        message = f"Initialization completed in {time.time() - startupTime_start} seconds."
+        program_logger.info(message)
 bot = aclient()
 tree = discord.app_commands.CommandTree(bot)
 tree.on_error = bot.on_app_command_error
@@ -272,8 +292,7 @@ class SignalHandler:
         signal.signal(signal.SIGTERM, self._shutdown)
 
     def _shutdown(self, signum, frame):
-        manlogger.info('Received signal to shutdown...')
-        print('Received signal to shutdown...')
+        program_logger.info('Received signal to shutdown...')
         bot.loop.create_task(Owner.shutdown(owner))
 
 
@@ -306,8 +325,7 @@ class Functions():
         try:
             await site.start()
         except OSError as e:
-            manlogger.warning(f'Error while starting health server: {e}')
-            print(f'Error while starting health server: {e}')
+            program_logger.warning(f'Error while starting health server: {e}')
 
     def seconds_to_minutes(input_int):
         return(str(timedelta(seconds=input_int)))
@@ -321,13 +339,13 @@ class Functions():
             try:
                 await message.publish()
             except Exception as e:
-                print(f"Error publishing message in {channel}: {e}")
+                discord_logger.error(f"Error publishing message in {channel}: {e}")
                 if permissions.add_reactions:
                     await message.add_reaction("\u26A0")
             finally:
                 await message.remove_reaction("\U0001F4E2", bot.user)
         else:
-            print(f"No permission to publish in {channel}.")
+            discord_logger.warning(f"No permission to publish in {channel}.")
             await message.remove_reaction("\U0001F4E2", bot.user)
             if permissions.add_reactions:
                 await message.add_reaction("\u26D4")
@@ -450,8 +468,8 @@ class Owner():
         action = args[0].lower()
         url = remove_and_save(args[1:])
         title = ' '.join(args[1:])
-        print(title)
-        print(url)
+        program_logger.debug(title)
+        program_logger.debug(url)
         with open(activity_file, 'r', encoding='utf8') as f:
             data = json.load(f)
         if action == 'playing':
@@ -512,7 +530,7 @@ class Owner():
 
     async def shutdown(message):
         global shutdown
-        manlogger.info('Engine powering down...')
+        program_logger.info('Engine powering down...')
         try:
             await message.channel.send('Engine powering down...')
         except:
@@ -627,7 +645,7 @@ async def self(interaction: discord.Interaction):
 if __name__ == '__main__':
     if not TOKEN:
         error_message = 'Missing token. Please check your .env file.'
-        manlogger.critical(error_message)
+        program_logger.critical(error_message)
         sys.exit(error_message)
     else:
         try:
@@ -635,7 +653,7 @@ if __name__ == '__main__':
             bot.run(TOKEN, log_handler=None)
         except discord.errors.LoginFailure:
             error_message = 'Invalid token. Please check your .env file.'
-            manlogger.critical(error_message)
+            program_logger.critical(error_message)
             sys.exit(error_message)
         except asyncio.CancelledError:
             if shutdown:
