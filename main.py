@@ -41,7 +41,7 @@ activity_file = os.path.join(app_folder_name, 'activity.json')
     
 #Load env
 TOKEN = os.getenv('TOKEN')
-ownerID = os.environ.get('OWNER_ID')
+OWNERID = os.environ.get('OWNER_ID')
 support_id = os.getenv('SUPPORT_SERVER')
 topgg_token = os.getenv('TOPGG_TOKEN')
 LOG_LEVEL = os.getenv('LOG_LEVEL')
@@ -110,7 +110,7 @@ class aclient(discord.AutoShardedClient):
 
         intents = discord.Intents.default()
 
-        super().__init__(owner_id = ownerID,
+        super().__init__(owner_id = OWNERID,
                               intents = intents,
                               status = discord.Status.invisible,
                               auto_reconnect = True
@@ -218,7 +218,7 @@ class aclient(discord.AutoShardedClient):
             if message.type.value in message_types:
                 return
             await Functions.auto_publish(message)
-        if message.guild is None and message.author.id == int(ownerID):
+        if message.guild is None and message.author.id == int(OWNERID):
             args = message.content.split(' ')
             program_logger.debug(args)
             command, *args = args
@@ -253,10 +253,10 @@ class aclient(discord.AutoShardedClient):
         global owner, start_time, shutdown
         shutdown = False
         try:
-            owner = await self.fetch_user(ownerID)
+            owner = await self.fetch_user(OWNERID)
             if owner is None:
-                program_logger.critical(f"Invalid ownerID: {ownerID}")
-                sys.exit(f"Invalid ownerID: {ownerID}")
+                program_logger.critical(f"Invalid ownerID: {OWNERID}")
+                sys.exit(f"Invalid ownerID: {OWNERID}")
         except discord.HTTPException as e:
             program_logger.critical(f"Error fetching owner user: {e}")
             sys.exit(f"Error fetching owner user: {e}")
