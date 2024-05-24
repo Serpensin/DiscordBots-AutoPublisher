@@ -24,7 +24,7 @@ RUN apk add --no-cache --virtual .build-deps gcc musl-dev python3-dev libc-dev l
     -exec rm -rf '{}' + && \
     rm -rf /root/.cache/pip
 
-LABEL maintainer="Discord: the_devil_of_the_rhine (863687441809801246)" \
+LABEL maintainer="Discord: pika.pika.no.mi (970119359840284743)" \
       commit=$COMMIT \
       description="This bot automatically publishes messages in announcement channels on discord." \
       release=$BUILD_DATE \
