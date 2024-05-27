@@ -24,32 +24,33 @@ from zipfile import ZIP_DEFLATED, ZipFile
 #Init
 discord.VoiceClient.warn_nacl = False
 load_dotenv()
+BOT_VERSION = '1.6.4'
+APP_FOLDER_NAME = 'AutoPublisher'
+BOT_NAME = 'AutoPublisher'
+if not os.path.exists(f'{APP_FOLDER_NAME}//Logs'):
+    os.makedirs(f'{APP_FOLDER_NAME}//Logs')
+if not os.path.exists(f'{APP_FOLDER_NAME}//Buffer'):
+    os.makedirs(f'{APP_FOLDER_NAME}//Buffer')
+ACTIVITY_FILE = os.path.join(APP_FOLDER_NAME, 'activity.json')
 sentry_sdk.init(
     dsn=os.getenv('SENTRY_DSN'),
     traces_sample_rate=1.0,
     profiles_sample_rate=1.0,
-    environment='Production'
+    environment='Production',
+    release=f'{BOT_NAME}@{BOT_VERSION}'
 )
-bot_version = '1.6.3'
-app_folder_name = 'AutoPublisher'
-bot_name = 'AutoPublisher'
-if not os.path.exists(f'{app_folder_name}//Logs'):
-    os.makedirs(f'{app_folder_name}//Logs')
-if not os.path.exists(f'{app_folder_name}//Buffer'):
-    os.makedirs(f'{app_folder_name}//Buffer')
-activity_file = os.path.join(app_folder_name, 'activity.json')
     
 #Load env
 TOKEN = os.getenv('TOKEN')
 OWNERID = os.environ.get('OWNER_ID')
-support_id = os.getenv('SUPPORT_SERVER')
-topgg_token = os.getenv('TOPGG_TOKEN')
+SUPPORT_ID = os.getenv('SUPPORT_SERVER')
+TOPGG_TOKEN = os.getenv('TOPGG_TOKEN')
 LOG_LEVEL = os.getenv('LOG_LEVEL')
 
 # Set-up Logging
-log_folder = f'{app_folder_name}//Logs//'
-buffer_folder = f'{app_folder_name}//Buffer//'
-log_manager = log_handler.LogManager(log_folder, bot_name, LOG_LEVEL)
+log_folder = f'{APP_FOLDER_NAME}//Logs//'
+buffer_folder = f'{APP_FOLDER_NAME}//Buffer//'
+log_manager = log_handler.LogManager(log_folder, BOT_NAME, LOG_LEVEL)
 discord_logger = log_manager.get_logger('discord')
 program_logger = log_manager.get_logger('Program')
 program_logger.info('Engine powering up...')
@@ -101,7 +102,7 @@ class JSONValidator:
     def write_default_content(self):
         with open(self.file_path, 'w') as file:
             json.dump(self.default_content, file, indent=4)
-validator = JSONValidator(activity_file)
+validator = JSONValidator(ACTIVITY_FILE)
 validator.validate_and_fix_json()
 
 
@@ -122,7 +123,7 @@ class aclient(discord.AutoShardedClient):
     class Presence():
         @staticmethod
         def get_activity() -> discord.Activity:
-            with open(activity_file) as f:
+            with open(ACTIVITY_FILE) as f:
                 data = json.load(f)
                 activity_type = data['activity_type']
                 activity_title = data['activity_title']
@@ -140,7 +141,7 @@ class aclient(discord.AutoShardedClient):
 
         @staticmethod
         def get_status() -> discord.Status:
-            with open(activity_file) as f:
+            with open(ACTIVITY_FILE) as f:
                 data = json.load(f)
                 status = data['status']
             if status == 'online':
@@ -271,7 +272,7 @@ class aclient(discord.AutoShardedClient):
         #Start background tasks
         stats = bot_directory.Stats(bot=bot,
                                     logger=program_logger,
-                                    TOPGG_TOKEN=topgg_token)
+                                    TOPGG_TOKEN=TOPGG_TOKEN)
         bot.loop.create_task(Functions.health_server())
         bot.loop.create_task(stats.task())
 
@@ -299,7 +300,7 @@ class SignalHandler:
 
 
 # Check if all required variables are set
-support_available = bool(support_id)
+support_available = bool(SUPPORT_ID)
 
 #Fix error on windows on shutdown
 if platform.system() == 'Windows':
@@ -354,7 +355,7 @@ class Functions():
 
     async def create_support_invite(interaction):
         try:
-            guild = bot.get_guild(int(support_id))
+            guild = bot.get_guild(int(SUPPORT_ID))
         except ValueError:
             return "Could not find support guild."
         if guild is None:
@@ -398,11 +399,11 @@ class Owner():
             return
         if args[0] == 'current':
             try:
-                await message.channel.send(file=discord.File(r''+log_folder+bot_name+'.log'))
+                await message.channel.send(file=discord.File(r''+log_folder+BOT_NAME+'.log'))
             except discord.HTTPException as err:
                 if err.status == 413:
                     with ZipFile(buffer_folder+'Logs.zip', mode='w', compression=ZIP_DEFLATED, compresslevel=9, allowZip64=True) as f:
-                        f.write(log_folder+bot_name+'.log')
+                        f.write(log_folder+BOT_NAME+'.log')
                     try:
                         await message.channel.send(file=discord.File(r''+buffer_folder+'Logs.zip'))
                     except discord.HTTPException as err:
@@ -435,7 +436,7 @@ class Owner():
             except ValueError:
                 await __wrong_selection()
                 return
-            with open(log_folder+bot_name+'.log', 'r', encoding='utf8') as f:
+            with open(log_folder+BOT_NAME+'.log', 'r', encoding='utf8') as f:
                 with open(buffer_folder+'log-lines.txt', 'w', encoding='utf8') as f2:
                     count = 0
                     for line in (f.readlines()[-lines:]):
@@ -472,7 +473,7 @@ class Owner():
         title = ' '.join(args[1:])
         program_logger.debug(title)
         program_logger.debug(url)
-        with open(activity_file, 'r', encoding='utf8') as f:
+        with open(ACTIVITY_FILE, 'r', encoding='utf8') as f:
             data = json.load(f)
         if action == 'playing':
             data['activity_type'] = 'Playing'
@@ -497,7 +498,7 @@ class Owner():
         else:
             await __wrong_selection()
             return
-        with open(activity_file, 'w', encoding='utf8') as f:
+        with open(ACTIVITY_FILE, 'w', encoding='utf8') as f:
             json.dump(data, f, indent=2)
         await bot.change_presence(activity = bot.Presence.get_activity(), status = bot.Presence.get_status())
         await message.channel.send(f'Activity set to {action} {title}{" " + url if url else ""}.')
@@ -512,7 +513,7 @@ class Owner():
             await __wrong_selection()
             return
         action = args[0].lower()
-        with open(activity_file, 'r', encoding='utf8') as f:
+        with open(ACTIVITY_FILE, 'r', encoding='utf8') as f:
             data = json.load(f)
         if action == 'online':
             data['status'] = 'online'
@@ -525,7 +526,7 @@ class Owner():
         else:
             await __wrong_selection()
             return
-        with open(activity_file, 'w', encoding='utf8') as f:
+        with open(ACTIVITY_FILE, 'w', encoding='utf8') as f:
             json.dump(data, f, indent=2)
         await bot.change_presence(activity = bot.Presence.get_activity(), status = bot.Presence.get_status())
         await message.channel.send(f'Status set to {action}.')
@@ -552,7 +553,7 @@ if support_available:
     @tree.command(name = 'support', description = 'Get invite to our support server.')
     @discord.app_commands.checks.cooldown(1, 60, key=lambda i: (i.user.id))
     async def self(interaction: discord.Interaction):
-        if str(interaction.guild.id) != support_id:
+        if str(interaction.guild.id) != SUPPORT_ID:
             await interaction.response.defer(ephemeral = True)
             await interaction.followup.send(await Functions.create_support_invite(interaction), ephemeral = True)
         else:
@@ -612,7 +613,7 @@ async def self(interaction: discord.Interaction):
         embed.set_thumbnail(url=bot.user.avatar.url if bot.user.avatar else '')
 
         embed.add_field(name="Created at", value=bot.user.created_at.strftime("%d.%m.%Y, %H:%M:%S"), inline=True)
-        embed.add_field(name="Version", value=bot_version, inline=True)
+        embed.add_field(name="Version", value=BOT_VERSION, inline=True)
         embed.add_field(name="Uptime", value=str(datetime.timedelta(seconds=int((datetime.datetime.now() - start_time).total_seconds()))), inline=True)
 
         embed.add_field(name="Owner", value=f"<@!{OWNERID}>", inline=True)
