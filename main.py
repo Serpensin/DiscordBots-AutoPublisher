@@ -30,7 +30,7 @@ sentry_sdk.init(
     profiles_sample_rate=1.0,
     environment='Production'
 )
-bot_version = '1.6.2'
+bot_version = '1.6.3'
 app_folder_name = 'AutoPublisher'
 bot_name = 'AutoPublisher'
 if not os.path.exists(f'{app_folder_name}//Logs'):
@@ -329,7 +329,7 @@ class Functions():
             program_logger.warning(f'Error while starting health server: {e}')
 
     def seconds_to_minutes(input_int):
-        return(str(timedelta(seconds=input_int)))
+        return(str(datetime.timedelta(seconds=input_int)))
 
     async def auto_publish(message: discord.Message):
         channel = message.channel
@@ -340,9 +340,10 @@ class Functions():
             try:
                 await message.publish()
             except Exception as e:
-                discord_logger.error(f"Error publishing message in {channel}: {e}")
-                if permissions.add_reactions:
-                    await message.add_reaction("\u26A0")
+                if not message.flags.crossposted:
+                    discord_logger.error(f"Error publishing message in {channel}: {e}")
+                    if permissions.add_reactions:
+                        await message.add_reaction("\u26A0")
             finally:
                 await message.remove_reaction("\U0001F4E2", bot.user)
         else:
