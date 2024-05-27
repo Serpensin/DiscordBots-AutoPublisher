@@ -11,7 +11,7 @@ services:
       - SUPPORT_SERVER=DISCORD-ID-SUPPORTSERVER
       - LOG_LEVEL=Info
     volumes:
-      - log:/app/AutoPublisher/Logs
+      - data:/app/AutoPublisher
 
 volumes:
-  log:
+  data:
