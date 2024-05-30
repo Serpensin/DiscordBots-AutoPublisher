@@ -24,7 +24,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 #Init
 discord.VoiceClient.warn_nacl = False
 load_dotenv()
-BOT_VERSION = '1.6.4'
+BOT_VERSION = '1.6.5'
 APP_FOLDER_NAME = 'AutoPublisher'
 BOT_NAME = 'AutoPublisher'
 if not os.path.exists(f'{APP_FOLDER_NAME}//Logs'):
@@ -571,6 +571,9 @@ if support_available:
     discord.app_commands.Choice(name="Check bot permissions", value="check")
 ])
 async def permissions(interaction: discord.Interaction, choice: str, channel: discord.abc.GuildChannel = None):
+    if interaction.guild is None:
+        await interaction.response.send_message('This command can only be used in a server.', ephemeral=True)
+        return
     if interaction.user.guild_permissions.manage_roles or interaction.user.guild_permissions.manage_channels:
         if choice == 'explain':
             await interaction.response.send_message('In order for this bot to be able to publish messages, he needs the following permissions for each channel he publishes messages for:\n`View Channel`, `Send Messages`, `Manage Messages` and `Read Message History`.', ephemeral=True)
