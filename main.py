@@ -24,7 +24,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 #Init
 discord.VoiceClient.warn_nacl = False
 load_dotenv()
-BOT_VERSION = '1.6.6'
+BOT_VERSION = '1.6.7'
 APP_FOLDER_NAME = 'AutoPublisher'
 BOT_NAME = 'AutoPublisher'
 if not os.path.exists(f'{APP_FOLDER_NAME}//Logs'):
@@ -557,8 +557,9 @@ class Owner():
         forbidden = 0
         error = 0
         for guild in bot.guilds:
+            guild_owner = await bot.fetch_user(guild.owner_id)
             try:
-                await guild.owner.send(f'Broadcast from the owner of the bot:\n{message}')
+                await guild_owner.send(f'Broadcast from the owner of the bot:\n{message}')
                 success += 1
             except discord.Forbidden:
                 forbidden += 1
