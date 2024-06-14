@@ -24,7 +24,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 #Init
 discord.VoiceClient.warn_nacl = False
 load_dotenv()
-BOT_VERSION = '1.6.5'
+BOT_VERSION = '1.6.6'
 APP_FOLDER_NAME = 'AutoPublisher'
 BOT_NAME = 'AutoPublisher'
 if not os.path.exists(f'{APP_FOLDER_NAME}//Logs'):
@@ -205,11 +205,12 @@ class aclient(discord.AutoShardedClient):
         async def __wrong_selection():
             await message.channel.send('```'
                                        'Commands:\n'
+                                       'activity - Set the activity of the bot\n'
+                                       'broadcast - Broadcast a message to all server owners\n'
                                        'help - Shows this message\n'
                                        'log - Get the log\n'
-                                       'activity - Set the activity of the bot\n'
-                                       'status - Set the status of the bot\n'
                                        'shutdown - Shutdown the bot\n'
+                                       'status - Set the status of the bot\n'
                                        '```')
 
         if message.author == bot.user:
@@ -241,6 +242,10 @@ class aclient(discord.AutoShardedClient):
 
             elif command == 'shutdown':
                 await Owner.shutdown(message)
+                return
+            
+            elif command == 'broadcast':
+                await Owner.broadcast(' '.join(args))
                 return
 
             else:
@@ -546,6 +551,20 @@ class Owner():
         await asyncio.gather(*tasks, return_exceptions=True)
 
         await bot.close()
+
+    async def broadcast(message):
+        success = 0
+        forbidden = 0
+        error = 0
+        for guild in bot.guilds:
+            try:
+                await guild.owner.send(f'Broadcast from the owner of the bot:\n{message}')
+                success += 1
+            except discord.Forbidden:
+                forbidden += 1
+            except:
+                error += 1
+        await owner.send(f'Broadcast finished.\nSuccess: {success}\nForbidden: {forbidden}\nError: {error}')
 
 
 #Support Invite
