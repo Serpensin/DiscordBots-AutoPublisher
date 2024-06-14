@@ -553,6 +553,7 @@ class Owner():
         await bot.close()
 
     async def broadcast(message):
+        already_send = []
         success = 0
         forbidden = 0
         error = 0
@@ -561,6 +562,7 @@ class Owner():
             try:
                 await guild_owner.send(f'Broadcast from the owner of the bot:\n{message}')
                 success += 1
+                already_send.append(guild_owner.id)
             except discord.Forbidden:
                 forbidden += 1
             except:
