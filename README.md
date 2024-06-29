@@ -1,4 +1,4 @@
-# Discord Auto Publisher [![Discord Bot Invite](https://img.shields.io/badge/Invite-blue)](https://discord.com/oauth2/authorize?client_id=1105085860615045221&permissions=0&scope=bot%20applications.commands)[![Discord Bots](https://top.gg/api/widget/servers/1105085860615045221.svg)](https://top.gg/bot/1105085860615045221)
+# Discord Auto Publisher [![Discord Bot Invite](https://img.shields.io/badge/Invite-blue)](https://discord.com/oauth2/authorize?client_id=1251224770733801562)[![Discord Bots](https://top.gg/api/widget/servers/1251224770733801562.svg)](https://top.gg/bot/1251224770733801562)
 
 **Automatically publish messages or news in your announcement channels!**
 
