@@ -1,4 +1,4 @@
-﻿FROM python:3.12.3-alpine
+﻿FROM python:3.12.4-alpine
 
 WORKDIR /app
 
@@ -29,6 +29,6 @@ LABEL maintainer="Discord: pika.pika.no.mi (970119359840284743)" \
       description="This bot automatically publishes messages in announcement channels on discord." \
       release=$BUILD_DATE \
       url="https://gitlab.bloodygang.com/Serpensin/autopublisher" \
-      version="1.6.7"
+      version="1.6.8"
 
 CMD ["python3", "main.py"]
