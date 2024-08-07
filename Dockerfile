@@ -6,8 +6,8 @@ COPY CustomModules ./CustomModules
 COPY *.py .
 COPY requirements.txt .
 
-ENV TERM xterm
-ENV PYTHONUNBUFFERED 1
+ENV TERM=xterm
+ENV PYTHONUNBUFFERED=1
 
 ARG TARGETPLATFORM
 ARG BUILD_DATE
