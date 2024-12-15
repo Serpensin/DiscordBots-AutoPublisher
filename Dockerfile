@@ -1,4 +1,4 @@
-﻿FROM python:3.12.4-alpine
+﻿FROM python:3.12-alpine
 
 WORKDIR /app
 
@@ -26,7 +26,6 @@ RUN apk add --no-cache --virtual .build-deps gcc musl-dev python3-dev libc-dev l
     rm -rf /root/.cache/pip
 
 LABEL maintainer="Discord: pika.pika.no.mi (970119359840284743)" \
-      commit=$COMMIT \
       description="This bot automatically publishes messages in announcement channels on discord." \
       release=$BUILD_DATE \
       url="https://gitlab.bloodygang.com/Serpensin/autopublisher" \

@@ -364,4 +364,3 @@ FodyWeavers.xsd
 /env
 /.env
 /AutoPublisher/activity.json
-*.bat

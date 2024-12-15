@@ -7,12 +7,9 @@ Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "Discord-Bot-AutoPublisher",
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Projektmappenelemente", "Projektmappenelemente", "{C4083A9B-DFB3-45E7-91EF-F4FC501920AE}"
 	ProjectSection(SolutionItems) = preProject
-		.env = .env
 		.env.template = .env.template
 		.gitattributes = .gitattributes
 		.gitignore = .gitignore
-		.gitlab-ci.yml = .gitlab-ci.yml
-		debug_build.bat = debug_build.bat
 		docker-compose.yml = docker-compose.yml
 		Dockerfile = Dockerfile
 		LICENSE.txt = LICENSE.txt
