@@ -2,7 +2,7 @@ version: '3'
 services:
   autopublisher:
     container_name: AutoPublisher
-    image: serpensin/autopublisher
+    image: ghcr.io/serpensin/discordbots-autopublisher
     restart: unless-stopped
     environment:
       - TOKEN=BOT_TOKEN
