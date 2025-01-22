@@ -11,10 +11,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Projektmappenelemente", "Pr
 		.gitattributes = .gitattributes
 		.gitignore = .gitignore
 		docker-compose.yml = docker-compose.yml
+		.github\workflows\docker-image.yml = .github\workflows\docker-image.yml
 		Dockerfile = Dockerfile
 		LICENSE.txt = LICENSE.txt
 		README.md = README.md
-		release_build.bat = release_build.bat
 	EndProjectSection
 EndProject
 Global
