@@ -12,15 +12,15 @@ A bot that will automatically publish every new message in your [announcement/ne
 
 ### Classic Method
 
-1. Ensure Python 3.9 is installed. This bot was developed using Python 3.9.7. Download it [here](https://www.python.org/downloads/).
+1. Ensure Python 3.11 is installed. Download it [here](https://www.python.org/downloads/).
 2. Clone this repository or download the zip file.
-3. Open a terminal in the "DBDStats" folder where you cloned the repository or extracted the zip file.
+3. Open a terminal in the cloned folder where you cloned the repository or extracted the zip file.
 4. Run `pip install -r requirements.txt` to install the dependencies.
 5. Open the file ".env.template" and complete all variables:
    - `TOKEN`: The token of your bot. Obtain it from the [Discord Developer Portal](https://discord.com/developers/applications).
    - `OWNER_ID`: Your Discord ID.
 6. Rename the file ".env.template" to ".env".
-7. Run `python main.py` or `python3 main.py` to start the bot.
+7. Run `python3 main.py` or `python main.py` to start the bot.
 
 ### Docker Method
 
@@ -53,7 +53,7 @@ docker run -d \
 --name AutoPublisher \
 --restart any \
 -v autopublisher_log:/app/AutoPublisher/Logs \
-serpensin/autopublisher
+ghcr.io/serpensin/discordbots-autopublisher:latest
 ```
 
 ### Keep in mind...

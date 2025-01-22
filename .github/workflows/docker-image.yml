@@ -41,7 +41,7 @@ jobs:
           --compress \
           --platform ${{ matrix.platform }} \
           --tag $IMAGE_NAME:latest-${PLATFORM_TAG} \
-          --push ./Basis
+          --push .
       shell: bash
 
   build-and-push-arm:
