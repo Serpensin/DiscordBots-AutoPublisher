@@ -76,7 +76,7 @@ class JSONValidator:
 
     default_content = {
         "activity_type": "Playing",
-        "activity_title": "Made by Serpensin: https://gitlab.bloodygang.com/Serpensin",
+        "activity_title": "Made by Serpensin: https://github.com/Serpensin",
         "activity_url": "",
         "status": "online"
     }
