@@ -658,7 +658,7 @@ async def self(interaction: discord.Interaction):
         embed.add_field(name="discord.py", value=f"{discord.__version__}", inline=True)
         embed.add_field(name="Sentry", value=f"{sentry_sdk.consts.VERSION}", inline=True)
 
-        embed.add_field(name="Repo", value=f"[GitLab](https://gitlab.bloodygang.com/Serpensin/autopublisher)", inline=True)
+        embed.add_field(name="Repo", value=f"[GitHub](https://github.com/Serpensin/DiscordBots-AutoPublisher)", inline=True)
         embed.add_field(name="Invite", value=f"[Invite me](https://discord.com/oauth2/authorize?client_id={bot.user.id}&permissions=67423232&scope=bot)", inline=True)
         embed.add_field(name="\u200b", value="\u200b", inline=True)
 
