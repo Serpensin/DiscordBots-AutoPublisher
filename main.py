@@ -24,7 +24,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 #Init
 discord.VoiceClient.warn_nacl = False
 load_dotenv()
-BOT_VERSION = '1.6.9'
+BOT_VERSION = '1.6.10'
 APP_FOLDER_NAME = 'AutoPublisher'
 BOT_NAME = 'AutoPublisher'
 if not os.path.exists(f'{APP_FOLDER_NAME}//Logs'):
@@ -334,9 +334,6 @@ class Functions():
         except OSError as e:
             program_logger.warning(f'Error while starting health server: {e}')
 
-    def seconds_to_minutes(input_int):
-        return(str(datetime.timedelta(seconds=input_int)))
-
     async def auto_publish(message: discord.Message):
         channel = message.channel
         permissions = channel.permissions_for(channel.guild.me)
@@ -344,6 +341,10 @@ class Functions():
             await message.add_reaction("\U0001F4E2")
         if permissions.send_messages and permissions.manage_messages:
             try:
+                message = await message.channel.fetch_message(message.id)
+                if message.flags.crossposted:
+                    await message.remove_reaction("\U0001F4E2", bot.user)
+                    return
                 await message.publish()
             except Exception as e:
                 if not message.flags.crossposted:
