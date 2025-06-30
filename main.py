@@ -24,7 +24,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 #Init
 discord.VoiceClient.warn_nacl = False
 load_dotenv()
-BOT_VERSION = '1.6.10'
+BOT_VERSION = '1.6.11'
 APP_FOLDER_NAME = 'AutoPublisher'
 BOT_NAME = 'AutoPublisher'
 if not os.path.exists(f'{APP_FOLDER_NAME}//Logs'):
@@ -659,7 +659,7 @@ async def self(interaction: discord.Interaction):
         embed.add_field(name="Sentry", value=f"{sentry_sdk.consts.VERSION}", inline=True)
 
         embed.add_field(name="Repo", value=f"[GitHub](https://github.com/Serpensin/DiscordBots-AutoPublisher)", inline=True)
-        embed.add_field(name="Invite", value=f"[Invite me](https://discord.com/oauth2/authorize?client_id={bot.user.id}&permissions=67423232&scope=bot)", inline=True)
+        embed.add_field(name="Invite", value=f"[Invite me](https://discord.com/oauth2/authorize?client_id={bot.user.id})", inline=True)
         embed.add_field(name="\u200b", value="\u200b", inline=True)
 
         if interaction.user.id == int(OWNERID):
