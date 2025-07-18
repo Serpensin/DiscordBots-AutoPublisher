@@ -24,7 +24,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 #Init
 discord.VoiceClient.warn_nacl = False
 load_dotenv()
-BOT_VERSION = '1.6.11'
+BOT_VERSION = '1.6.12'
 APP_FOLDER_NAME = 'AutoPublisher'
 BOT_NAME = 'AutoPublisher'
 if not os.path.exists(f'{APP_FOLDER_NAME}//Logs'):
@@ -48,9 +48,9 @@ TOPGG_TOKEN = os.getenv('TOPGG_TOKEN')
 LOG_LEVEL = os.getenv('LOG_LEVEL')
 
 # Set-up Logging
-log_folder = f'{APP_FOLDER_NAME}//Logs//'
-buffer_folder = f'{APP_FOLDER_NAME}//Buffer//'
-log_manager = log_handler.LogManager(log_folder, BOT_NAME, LOG_LEVEL)
+LOG_FOLDER = f'{APP_FOLDER_NAME}//Logs//'
+BUFFER_FOLDER = f'{APP_FOLDER_NAME}//Buffer//'
+log_manager = log_handler.LogManager(LOG_FOLDER, BOT_NAME, LOG_LEVEL)
 discord_logger = log_manager.get_logger('discord')
 program_logger = log_manager.get_logger('Program')
 program_logger.info('Engine powering up...')
@@ -399,59 +399,61 @@ class Owner():
             await message.channel.send('```'
                                        'log [current/folder/lines] (Replace lines with a positive number, if you only want lines.) - Get the log\n'
                                        '```')
-
-        if args == []:
+        if not args:
             await __wrong_selection()
             return
-        if args[0] == 'current':
+
+        command = args[0]
+        if command == 'current':
+            log_file_path = f'{LOG_FOLDER}{BOT_NAME}.log'
             try:
-                await message.channel.send(file=discord.File(r''+log_folder+BOT_NAME+'.log'))
+                await message.channel.send(file=discord.File(log_file_path))
             except discord.HTTPException as err:
                 if err.status == 413:
-                    with ZipFile(buffer_folder+'Logs.zip', mode='w', compression=ZIP_DEFLATED, compresslevel=9, allowZip64=True) as f:
-                        f.write(log_folder+BOT_NAME+'.log')
+                    zip_path = f'{BUFFER_FOLDER}Logs.zip'
+                    with ZipFile(zip_path, mode='w', compression=ZIP_DEFLATED, compresslevel=9, allowZip64=True) as zip_file:
+                        zip_file.write(log_file_path)
                     try:
-                        await message.channel.send(file=discord.File(r''+buffer_folder+'Logs.zip'))
+                        await message.channel.send(file=discord.File(zip_path))
                     except discord.HTTPException as err:
                         if err.status == 413:
-                            await message.channel.send("The log is too big to be send directly.\nYou have to look at the log in your server (VPS).")
-                    os.remove(buffer_folder+'Logs.zip')
-                    return
-        elif args[0] == 'folder':
-            if os.path.exists(buffer_folder+'Logs.zip'):
-                os.remove(buffer_folder+'Logs.zip')
-            with ZipFile(buffer_folder+'Logs.zip', mode='w', compression=ZIP_DEFLATED, compresslevel=9, allowZip64=True) as f:
-                for file in os.listdir(log_folder):
-                    if file.endswith(".zip"):
-                        continue
-                    f.write(log_folder+file)
+                            await message.channel.send("The log is too big to be sent directly.\nYou have to look at the log in your server (VPS).")
+                    os.remove(zip_path)
+            return
+
+        if command == 'folder':
+            zip_path = f'{BUFFER_FOLDER}Logs.zip'
+            if os.path.exists(zip_path):
+                os.remove(zip_path)
+            with ZipFile(zip_path, mode='w', compression=ZIP_DEFLATED, compresslevel=9, allowZip64=True) as zip_file:
+                for file in os.listdir(LOG_FOLDER):
+                    if not file.endswith(".zip"):
+                        zip_file.write(f'{LOG_FOLDER}{file}')
             try:
-                await message.channel.send(file=discord.File(r''+buffer_folder+'Logs.zip'))
+                await message.channel.send(file=discord.File(zip_path))
             except discord.HTTPException as err:
                 if err.status == 413:
-                    await message.channel.send("The folder is too big to be send directly.\nPlease get the current file, or the last X lines.")
-            os.remove(buffer_folder+'Logs.zip')
+                    await message.channel.send("The folder is too big to be sent directly.\nPlease get the current file or the last X lines.")
+            os.remove(zip_path)
             return
-        else:
-            try:
-                if int(args[0]) < 1:
-                    await __wrong_selection()
-                    return
-                else:
-                    lines = int(args[0])
-            except ValueError:
+
+        try:
+            lines = int(command)
+            if lines < 1:
                 await __wrong_selection()
                 return
-            with open(log_folder+BOT_NAME+'.log', 'r', encoding='utf8') as f:
-                with open(buffer_folder+'log-lines.txt', 'w', encoding='utf8') as f2:
-                    count = 0
-                    for line in (f.readlines()[-lines:]):
-                        f2.write(line)
-                        count += 1
-            await message.channel.send(content = f'Here are the last {count} lines of the current logfile:', file = discord.File(r''+buffer_folder+'log-lines.txt'))
-            if os.path.exists(buffer_folder+'log-lines.txt'):
-                os.remove(buffer_folder+'log-lines.txt')
+        except ValueError:
+            await __wrong_selection()
             return
+
+        log_file_path = f'{LOG_FOLDER}{BOT_NAME}.log'
+        buffer_file_path = f'{BUFFER_FOLDER}log-lines.txt'
+        with open(log_file_path, 'r', encoding='utf8') as log_file:
+            log_lines = log_file.readlines()[-lines:]
+        with open(buffer_file_path, 'w', encoding='utf8') as buffer_file:
+            buffer_file.writelines(log_lines)
+        await message.channel.send(content=f'Here are the last {len(log_lines)} lines of the current logfile:', file=discord.File(buffer_file_path))
+        os.remove(buffer_file_path)
 
     async def activity(message, args):
         async def __wrong_selection():
