@@ -24,7 +24,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 #Init
 discord.VoiceClient.warn_nacl = False
 load_dotenv()
-BOT_VERSION = '1.6.12'
+BOT_VERSION = '1.6.13'
 APP_FOLDER_NAME = 'AutoPublisher'
 BOT_NAME = 'AutoPublisher'
 if not os.path.exists(f'{APP_FOLDER_NAME}//Logs'):
@@ -635,7 +635,7 @@ async def self(interaction: discord.Interaction):
         member_count = sum(guild.member_count for guild in bot.guilds)
 
         embed = discord.Embed(
-            title=f"Informationen about {bot.user.name}",
+            title=f"Information about {bot.user.name}",
             color=discord.Color.blue()
         )
         embed.set_thumbnail(url=bot.user.avatar.url if bot.user.avatar else '')
