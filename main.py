@@ -24,7 +24,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 #Init
 discord.VoiceClient.warn_nacl = False
 load_dotenv()
-BOT_VERSION = '1.6.14'
+BOT_VERSION = '1.7.0'
 APP_FOLDER_NAME = 'AutoPublisher'
 BOT_NAME = 'AutoPublisher'
 if not os.path.exists(f'{APP_FOLDER_NAME}//Logs'):
@@ -32,6 +32,18 @@ if not os.path.exists(f'{APP_FOLDER_NAME}//Logs'):
 if not os.path.exists(f'{APP_FOLDER_NAME}//Buffer'):
     os.makedirs(f'{APP_FOLDER_NAME}//Buffer')
 ACTIVITY_FILE = os.path.join(APP_FOLDER_NAME, 'activity.json')
+NON_PUBLISHABLE_MESSAGE_TYPES = {
+    discord.MessageType.channel_pinned_message,
+    discord.MessageType.thread_created,
+    discord.MessageType.reply,
+    discord.MessageType.role_subscription_purchase,
+    discord.MessageType.stage_end,
+    discord.MessageType.stage_start,
+    discord.MessageType.stage_topic,
+    discord.MessageType.thread_starter_message,
+    discord.MessageType.thread_raised_hand,
+    discord.MessageType.thread_speaker,
+}
 sentry_sdk.init(
     dsn=os.getenv('SENTRY_DSN'),
     traces_sample_rate=1.0,
@@ -215,10 +227,7 @@ class aclient(discord.AutoShardedClient):
 
         if message.author == bot.user:
             return
-        if message.channel.type == discord.ChannelType.news:
-            message_types = [6, 19, 20]
-            if message.type.value in message_types:
-                return
+        if message.channel.type == discord.ChannelType.news and message.type not in NON_PUBLISHABLE_MESSAGE_TYPES:
             await Functions.auto_publish(message)
         if message.guild is None and message.author.id == int(OWNERID):
             args = message.content.split(' ')
@@ -283,7 +292,6 @@ class aclient(discord.AutoShardedClient):
 
         program_logger.info('All systems online...')
         start_time = datetime.datetime.now()
-        clear()
         self.initialized = True
         message = f"Initialization completed in {time.time() - startupTime_start} seconds."
         program_logger.info(message)
@@ -310,11 +318,6 @@ support_available = bool(SUPPORT_ID)
 #Fix error on windows on shutdown
 if platform.system() == 'Windows':
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-def clear():
-    if platform.system() == 'Windows':
-        os.system('cls')
-    else:
-        os.system('clear')
 
 
 
@@ -343,7 +346,7 @@ class Functions():
     
         if permissions.send_messages and permissions.manage_messages:
             try:
-                message = await message.channel.fetch_message(message.id)
+                # message = await message.channel.fetch_message(message.id)
     
                 if message.flags.crossposted:
                     await message.remove_reaction("\U0001F4E2", bot.user)
@@ -602,7 +605,7 @@ class Owner():
 if support_available:
     @tree.command(name = 'support', description = 'Get invite to our support server.')
     @discord.app_commands.checks.cooldown(1, 60, key=lambda i: (i.user.id))
-    async def self(interaction: discord.Interaction):
+    async def support_invite_command(interaction: discord.Interaction):
         if str(interaction.guild.id) != SUPPORT_ID:
             await interaction.response.defer(ephemeral = True)
             await interaction.followup.send(await Functions.create_support_invite(interaction), ephemeral = True)
@@ -620,7 +623,7 @@ if support_available:
     discord.app_commands.Choice(name="Explain permissions", value="explain"),
     discord.app_commands.Choice(name="Check bot permissions", value="check")
 ])
-async def permissions(interaction: discord.Interaction, choice: str, channel: discord.abc.GuildChannel = None):
+async def permissions_command(interaction: discord.Interaction, choice: str, channel: discord.abc.GuildChannel = None):
     if interaction.guild is None:
         await interaction.response.send_message('This command can only be used in a server.', ephemeral=True)
         return
@@ -656,7 +659,7 @@ async def permissions(interaction: discord.Interaction, choice: str, channel: di
 #Bot Information
 @tree.command(name = 'botinfo', description = 'Get information about the bot.')
 @discord.app_commands.checks.cooldown(1, 60, key=lambda i: (i.user.id))
-async def self(interaction: discord.Interaction):
+async def botinfo_command(interaction: discord.Interaction):
         member_count = sum(guild.member_count for guild in bot.guilds)
 
         embed = discord.Embed(
