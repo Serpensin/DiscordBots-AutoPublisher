@@ -33,7 +33,7 @@ if not os.path.exists(f'{APP_FOLDER_NAME}//Buffer'):
     os.makedirs(f'{APP_FOLDER_NAME}//Buffer')
 ACTIVITY_FILE = os.path.join(APP_FOLDER_NAME, 'activity.json')
 NON_PUBLISHABLE_MESSAGE_TYPES = {
-    discord.MessageType.channel_pinned_message,
+    discord.MessageType.pins_add,
     discord.MessageType.thread_created,
     discord.MessageType.reply,
     discord.MessageType.role_subscription_purchase,
