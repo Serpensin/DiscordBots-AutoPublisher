@@ -41,7 +41,7 @@ NON_PUBLISHABLE_MESSAGE_TYPES = {
     discord.MessageType.stage_start,
     discord.MessageType.stage_topic,
     discord.MessageType.thread_starter_message,
-    discord.MessageType.thread_raised_hand,
+    discord.MessageType.stage_raise_hand,
     discord.MessageType.thread_speaker,
 }
 sentry_sdk.init(
