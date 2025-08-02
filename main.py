@@ -24,7 +24,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 #Init
 discord.VoiceClient.warn_nacl = False
 load_dotenv()
-BOT_VERSION = '1.7.1'
+BOT_VERSION = '1.7.2'
 APP_FOLDER_NAME = 'AutoPublisher'
 BOT_NAME = 'AutoPublisher'
 if not os.path.exists(f'{APP_FOLDER_NAME}//Logs'):
@@ -226,15 +226,20 @@ class aclient(discord.AutoShardedClient):
                                        'status - Set the status of the bot\n'
                                        '```')
 
+        channel = message.channel
+        permissions = channel.permissions_for(channel.guild.me)
+
         if message.author == bot.user:
             return
         if (
             message.channel.type == discord.ChannelType.news
             and message.type not in NON_PUBLISHABLE_MESSAGE_TYPES
+            and permissions.send_messages
+            and permissions.manage_messages
             and not message.flags.crossposted
             and not message.flags.is_crossposted
         ):
-            await Functions.auto_publish(message)
+            await Functions.auto_publish(message, channel, permissions)
         if message.guild is None and message.author.id == int(OWNERID):
             args = message.content.split(' ')
             program_logger.debug(args)
@@ -343,50 +348,36 @@ class Functions():
         except OSError as e:
             program_logger.warning(f'Error while starting health server: {e}')
 
-    async def auto_publish(message: discord.Message, retries: int = 3):
-        channel = message.channel
-        permissions = channel.permissions_for(channel.guild.me)
-    
-        if permissions.add_reactions:
+    async def auto_publish(message: discord.Message, channel: discord.TextChannel, permissions: discord.Permissions, retries: int = 3): 
+        if permissions.add_reactions and retries == 3:
             await message.add_reaction("\U0001F4E2")  # 📢
     
-        if permissions.send_messages and permissions.manage_messages:
-            try:
-                await message.publish()
-    
-            except discord.HTTPException as e:
-                if e.code == 50068:
-                    discord_logger.info(f"Message {message.id} in channel {channel.id} on guild {message.guild.id} is not an announcement message. (Type {message.type.value})")
-                elif e.code == 40033:
-                    discord_logger.info(f"Message {message.id} in channel {channel.id} on guild {message.guild.id} is already published.")
-                elif e.status == 503 and e.code == 0:
-                    if retries > 0:
-                        discord_logger.info(f"Discord is currently unavailable. Retrying to publish message {message.id} in channel {channel.id} on guild {message.guild.id}. Retries left: {retries}")
-                        await asyncio.sleep(5)
-                        await Functions.auto_publish(message, retries=retries - 1)
-                        return
-                    else:
-                        discord_logger.warning(f"Failed to publish message {message.id} in channel {channel.id} on guild {message.guild.id} after retries.")
+        try:
+            await message.publish()
+        except discord.HTTPException as e:
+            if e.code == 50068:
+                discord_logger.info(f"Message {message.id} in channel {channel.id} on guild {message.guild.id} is not an announcement message. (Type {message.type.value})")
+            elif e.code == 40033:
+                discord_logger.info(f"Message {message.id} in channel {channel.id} on guild {message.guild.id} is already published.")
+            elif e.status == 503 and e.code == 0:
+                if retries > 0:
+                    discord_logger.info(f"Discord is currently unavailable. Retrying to publish message {message.id} in channel {channel.id} on guild {message.guild.id}. Retries left: {retries}")
+                    await asyncio.sleep(5)
+                    await Functions.auto_publish(message, channel, permissions, retries=retries - 1)
+                    return
                 else:
-                    raise
-    
-            except discord.NotFound:
-                discord_logger.info(f"Message {message.id} in channel {channel.id} on guild {message.guild.id} not found.")
-    
-            except Exception as e:
-                if not message.flags.crossposted:
-                    discord_logger.error(f"Error publishing message in {channel.id} on {message.guild.id}: {e}")
-                    if permissions.add_reactions:
-                        await message.add_reaction("\u26A0")  # ⚠️
-    
-            finally:
-                await message.remove_reaction("\U0001F4E2", bot.user)
-    
-        else:
-            discord_logger.info(f"No permission to publish in {channel.id} on guild {message.guild.id}.")
+                    discord_logger.warning(f"Failed to publish message {message.id} in channel {channel.id} on guild {message.guild.id} after retries.")
+            else:
+                raise   
+        except discord.NotFound:
+            discord_logger.info(f"Message {message.id} in channel {channel.id} on guild {message.guild.id} not found.")   
+        except Exception as e:
+            if not message.flags.crossposted:
+                discord_logger.error(f"Error publishing message in {channel.id} on {message.guild.id}: {e}")
+                if permissions.add_reactions:
+                    await message.add_reaction("\u26A0")  # ⚠️
+        finally:
             await message.remove_reaction("\U0001F4E2", bot.user)
-            if permissions.add_reactions:
-                await message.add_reaction("\u26D4")  # ⛔
 
     async def create_support_invite(interaction):
         try:
