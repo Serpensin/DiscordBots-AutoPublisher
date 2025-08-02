@@ -32,6 +32,19 @@ if not os.path.exists(f'{APP_FOLDER_NAME}//Logs'):
 if not os.path.exists(f'{APP_FOLDER_NAME}//Buffer'):
     os.makedirs(f'{APP_FOLDER_NAME}//Buffer')
 ACTIVITY_FILE = os.path.join(APP_FOLDER_NAME, 'activity.json')
+NON_PUBLISHABLE_MESSAGE_TYPES = {
+    discord.MessageType.pins_add,
+    discord.MessageType.thread_created,
+    discord.MessageType.reply,
+    discord.MessageType.role_subscription_purchase,
+    discord.MessageType.stage_end,
+    discord.MessageType.stage_start,
+    discord.MessageType.stage_topic,
+    discord.MessageType.thread_starter_message,
+    discord.MessageType.stage_raise_hand,
+    discord.MessageType.stage_speaker,
+    discord.MessageType.thread_created,
+}
 sentry_sdk.init(
     dsn=os.getenv('SENTRY_DSN'),
     traces_sample_rate=1.0,
@@ -215,8 +228,14 @@ class aclient(discord.AutoShardedClient):
 
         if message.author == bot.user:
             return
-        if message.channel.type == discord.ChannelType.news and message.type.value != 0:
+        if (
+            message.channel.type == discord.ChannelType.news
+            and message.type not in NON_PUBLISHABLE_MESSAGE_TYPES
+            and not message.flags.crossposted
+            and not message.flags.is_crossposted
+        ):
             await Functions.auto_publish(message)
+            print(message.type.value)
         if message.guild is None and message.author.id == int(OWNERID):
             args = message.content.split(' ')
             program_logger.debug(args)
@@ -334,16 +353,11 @@ class Functions():
     
         if permissions.send_messages and permissions.manage_messages:
             try:
-                # message = await message.channel.fetch_message(message.id)
-    
-                if message.flags.crossposted:
-                    await message.remove_reaction("\U0001F4E2", bot.user)
-                    return
                 await message.publish()
     
             except discord.HTTPException as e:
                 if e.code == 50068:
-                    discord_logger.info(f"Message {message.id} in channel {channel.id} on guild {message.guild.id} is not an announcement message.")
+                    discord_logger.info(f"Message {message.id} in channel {channel.id} on guild {message.guild.id} is not an announcement message. (Type {message.type.value})")
                 elif e.code == 40033:
                     discord_logger.info(f"Message {message.id} in channel {channel.id} on guild {message.guild.id} is already published.")
                 elif e.status == 503 and e.code == 0:
