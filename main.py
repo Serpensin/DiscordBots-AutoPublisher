@@ -32,19 +32,6 @@ if not os.path.exists(f'{APP_FOLDER_NAME}//Logs'):
 if not os.path.exists(f'{APP_FOLDER_NAME}//Buffer'):
     os.makedirs(f'{APP_FOLDER_NAME}//Buffer')
 ACTIVITY_FILE = os.path.join(APP_FOLDER_NAME, 'activity.json')
-NON_PUBLISHABLE_MESSAGE_TYPES = {
-    discord.MessageType.pins_add,
-    discord.MessageType.thread_created,
-    discord.MessageType.reply,
-    discord.MessageType.role_subscription_purchase,
-    discord.MessageType.stage_end,
-    discord.MessageType.stage_start,
-    discord.MessageType.stage_topic,
-    discord.MessageType.thread_starter_message,
-    discord.MessageType.stage_raise_hand,
-    discord.MessageType.stage_speaker,
-    discord.MessageType.thread_created,
-}
 sentry_sdk.init(
     dsn=os.getenv('SENTRY_DSN'),
     traces_sample_rate=1.0,
@@ -228,7 +215,7 @@ class aclient(discord.AutoShardedClient):
 
         if message.author == bot.user:
             return
-        if message.channel.type == discord.ChannelType.news and message.type not in NON_PUBLISHABLE_MESSAGE_TYPES:
+        if message.channel.type == discord.ChannelType.news and message.type.value != 0:
             await Functions.auto_publish(message)
         if message.guild is None and message.author.id == int(OWNERID):
             args = message.content.split(' ')
