@@ -29,6 +29,6 @@ LABEL maintainer="Discord: pika.pika.no.mi (970119359840284743)" \
       description="This bot automatically publishes messages in announcement channels on discord." \
       release=$BUILD_DATE \
       url="https://github.com/Serpensin/DiscordBots-AutoPublisher" \
-      version="1.7.2"
+      version="1.7.3"
 
 CMD ["python3", "main.py"]

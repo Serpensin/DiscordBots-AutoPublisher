@@ -24,7 +24,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 #Init
 discord.VoiceClient.warn_nacl = False
 load_dotenv()
-BOT_VERSION = '1.7.2'
+BOT_VERSION = '1.7.3'
 APP_FOLDER_NAME = 'AutoPublisher'
 BOT_NAME = 'AutoPublisher'
 if not os.path.exists(f'{APP_FOLDER_NAME}//Logs'):
@@ -44,6 +44,7 @@ NON_PUBLISHABLE_MESSAGE_TYPES = {
     discord.MessageType.stage_raise_hand,
     discord.MessageType.stage_speaker,
     discord.MessageType.thread_created,
+    discord.MessageType.poll_result,
 }
 sentry_sdk.init(
     dsn=os.getenv('SENTRY_DSN'),
