@@ -24,7 +24,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 #Init
 discord.VoiceClient.warn_nacl = False
 load_dotenv()
-BOT_VERSION = '1.7.5'
+BOT_VERSION = '1.7.6'
 APP_FOLDER_NAME = 'AutoPublisher'
 BOT_NAME = 'AutoPublisher'
 if not os.path.exists(f'{APP_FOLDER_NAME}//Logs'):
@@ -233,14 +233,13 @@ class aclient(discord.AutoShardedClient):
         if (
             message.channel.type == discord.ChannelType.news
             and message.type not in NON_PUBLISHABLE_MESSAGE_TYPES
-            and permissions.send_messages
-            and permissions.manage_messages
             and not message.flags.crossposted
             and not message.flags.is_crossposted
         ):
             channel = message.channel
             permissions = channel.permissions_for(channel.guild.me)
-            await Functions.auto_publish(message, channel, permissions)
+            if permissions.send_messages and permissions.manage_messages:
+                await Functions.auto_publish(message, channel, permissions)
 
         if message.guild is None and message.author.id == int(OWNERID):
             args = message.content.split(' ')
