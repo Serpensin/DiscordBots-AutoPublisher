@@ -24,7 +24,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 #Init
 discord.VoiceClient.warn_nacl = False
 load_dotenv()
-BOT_VERSION = '1.7.6'
+BOT_VERSION = '1.7.7'
 APP_FOLDER_NAME = 'AutoPublisher'
 BOT_NAME = 'AutoPublisher'
 if not os.path.exists(f'{APP_FOLDER_NAME}//Logs'):
@@ -599,11 +599,12 @@ if support_available:
     @tree.command(name = 'support', description = 'Get invite to our support server.')
     @discord.app_commands.checks.cooldown(1, 60, key=lambda i: (i.user.id))
     async def support_invite_command(interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral = True)
+
         if str(interaction.guild.id) != SUPPORT_ID:
-            await interaction.response.defer(ephemeral = True)
             await interaction.followup.send(await Functions.create_support_invite(interaction), ephemeral = True)
         else:
-            await interaction.response.send_message('You are already in our support server!', ephemeral = True)
+            await interaction.followup.send('You are already in our support server!', ephemeral = True)
 
 
 #Tell user what permissions are required
@@ -611,26 +612,26 @@ if support_available:
     name='permissions',
     description='Tell what permissions are required or check if the bot has necessary permissions in a channel.'
 )
+@discord.app_commands.guild_only()
 @discord.app_commands.describe(choice='Choose an option.', channel='Select channel.')
 @discord.app_commands.choices(choice=[
     discord.app_commands.Choice(name="Explain permissions", value="explain"),
     discord.app_commands.Choice(name="Check bot permissions", value="check")
 ])
 async def permissions_command(interaction: discord.Interaction, choice: str, channel: discord.abc.GuildChannel = None):
-    if interaction.guild is None:
-        await interaction.response.send_message('This command can only be used in a server.', ephemeral=True)
-        return
+    await interaction.response.defer(ephemeral=True)
+
     if interaction.user.guild_permissions.manage_roles or interaction.user.guild_permissions.manage_channels:
         if choice == 'explain':
-            await interaction.response.send_message('In order for this bot to be able to publish messages, he needs the following permissions for each channel he publishes messages for:\n`View Channel`, `Send Messages`, `Manage Messages` and `Read Message History`.', ephemeral=True)
+            await interaction.followup.send('In order for this bot to be able to publish messages, he needs the following permissions for each channel he publishes messages for:\n`View Channel`, `Send Messages`, `Manage Messages` and `Read Message History`.', ephemeral=True)
         elif choice == 'check':
             if channel is None:
-                await interaction.response.send_message('Please specify a channel.', ephemeral=True)
+                await interaction.followup.send('Please specify a channel.', ephemeral=True)
                 return
 
             if isinstance(channel, discord.TextChannel):
                 if not channel.is_news():
-                    await interaction.response.send_message('The specified channel is not an announcement channel.', ephemeral=True)
+                    await interaction.followup.send('The specified channel is not an announcement channel.', ephemeral=True)
                     return
 
                 perms = channel.permissions_for(interaction.guild.me)
@@ -638,65 +639,67 @@ async def permissions_command(interaction: discord.Interaction, choice: str, cha
                 missing_permissions = [perm for perm in needed_permissions if not getattr(perms, perm)]
 
                 if interaction.guild.me.guild_permissions.administrator:
-                    await interaction.response.send_message('The bot has Administrator, so he has all the necessary permissions in this channel.', ephemeral=True)
+                    await interaction.followup.send('The bot has Administrator, so he has all the necessary permissions in this channel.', ephemeral=True)
                 elif not missing_permissions:
-                    await interaction.response.send_message('The bot has all the necessary permissions in this channel.', ephemeral=True)
+                    await interaction.followup.send('The bot has all the necessary permissions in this channel.', ephemeral=True)
                 else:
-                    await interaction.response.send_message(f'The bot is missing the following permissions in this channel: {", ".join(missing_permissions)}.\nYou can also give him Administrator.', ephemeral=True)
+                    await interaction.followup.send(f'The bot is missing the following permissions in this channel: {", ".join(missing_permissions)}.\nYou can also give him Administrator.', ephemeral=True)
             else:
-                await interaction.response.send_message('Please specify a text channel.', ephemeral=True)
+                await interaction.followup.send('Please specify a text channel.', ephemeral=True)
     else:
-        await interaction.response.send_message('You need the `manage_roles` or `manage_channels` permission to use this command.', ephemeral=True)
+        await interaction.followup.send('You need the `manage_roles` or `manage_channels` permission to use this command.', ephemeral=True)
 
 
 #Bot Information
 @tree.command(name = 'botinfo', description = 'Get information about the bot.')
 @discord.app_commands.checks.cooldown(1, 60, key=lambda i: (i.user.id))
 async def botinfo_command(interaction: discord.Interaction):
-        member_count = sum(guild.member_count for guild in bot.guilds)
+    await interaction.response.defer(ephemeral = False)
 
-        embed = discord.Embed(
-            title=f"Information about {bot.user.name}",
-            color=discord.Color.blue()
-        )
-        embed.set_thumbnail(url=bot.user.avatar.url if bot.user.avatar else '')
+    member_count = sum(guild.member_count for guild in bot.guilds)
 
-        embed.add_field(name="Created at", value=bot.user.created_at.strftime("%d.%m.%Y, %H:%M:%S"), inline=True)
-        embed.add_field(name="Version", value=BOT_VERSION, inline=True)
-        embed.add_field(name="Uptime", value=str(datetime.timedelta(seconds=int((datetime.datetime.now() - start_time).total_seconds()))), inline=True)
+    embed = discord.Embed(
+        title=f"Information about {bot.user.name}",
+        color=discord.Color.blue()
+    )
+    embed.set_thumbnail(url=bot.user.avatar.url if bot.user.avatar else '')
 
-        embed.add_field(name="Owner", value=f"<@!{OWNERID}>", inline=True)
-        embed.add_field(name="\u200b", value="\u200b", inline=True)
-        embed.add_field(name="\u200b", value="\u200b", inline=True)
+    embed.add_field(name="Created at", value=bot.user.created_at.strftime("%d.%m.%Y, %H:%M:%S"), inline=True)
+    embed.add_field(name="Version", value=BOT_VERSION, inline=True)
+    embed.add_field(name="Uptime", value=str(datetime.timedelta(seconds=int((datetime.datetime.now() - start_time).total_seconds()))), inline=True)
 
-        embed.add_field(name="Server", value=f"{len(bot.guilds)}", inline=True)
-        embed.add_field(name="Member count", value=str(member_count), inline=True)
-        embed.add_field(name="\u200b", value="\u200b", inline=True)
+    embed.add_field(name="Owner", value=f"<@!{OWNERID}>", inline=True)
+    embed.add_field(name="\u200b", value="\u200b", inline=True)
+    embed.add_field(name="\u200b", value="\u200b", inline=True)
 
-        embed.add_field(name="Shards", value=f"{bot.shard_count}", inline=True)
-        embed.add_field(name="Shard ID", value=f"{interaction.guild.shard_id if interaction.guild else 'N/A'}", inline=True)
-        embed.add_field(name="\u200b", value="\u200b", inline=True)
+    embed.add_field(name="Server", value=f"{len(bot.guilds)}", inline=True)
+    embed.add_field(name="Member count", value=str(member_count), inline=True)
+    embed.add_field(name="\u200b", value="\u200b", inline=True)
 
-        embed.add_field(name="Python", value=f"{platform.python_version()}", inline=True)
-        embed.add_field(name="discord.py", value=f"{discord.__version__}", inline=True)
-        embed.add_field(name="Sentry", value=f"{sentry_sdk.consts.VERSION}", inline=True)
+    embed.add_field(name="Shards", value=f"{bot.shard_count}", inline=True)
+    embed.add_field(name="Shard ID", value=f"{interaction.guild.shard_id if interaction.guild else 'N/A'}", inline=True)
+    embed.add_field(name="\u200b", value="\u200b", inline=True)
 
-        embed.add_field(name="Repo", value=f"[GitHub](https://github.com/Serpensin/DiscordBots-AutoPublisher)", inline=True)
-        embed.add_field(name="Invite", value=f"[Invite me](https://discord.com/oauth2/authorize?client_id={bot.user.id})", inline=True)
-        embed.add_field(name="\u200b", value="\u200b", inline=True)
+    embed.add_field(name="Python", value=f"{platform.python_version()}", inline=True)
+    embed.add_field(name="discord.py", value=f"{discord.__version__}", inline=True)
+    embed.add_field(name="Sentry", value=f"{sentry_sdk.consts.VERSION}", inline=True)
 
-        if interaction.user.id == int(OWNERID):
-            # Add CPU and RAM usage
-            process = psutil.Process(os.getpid())
-            cpu_usage = process.cpu_percent()
-            ram_usage = round(process.memory_percent(), 2)
-            ram_real = round(process.memory_info().rss / (1024 ** 2), 2)
+    embed.add_field(name="Repo", value=f"[GitHub](https://github.com/Serpensin/DiscordBots-AutoPublisher)", inline=True)
+    embed.add_field(name="Invite", value=f"[Invite me](https://discord.com/oauth2/authorize?client_id={bot.user.id})", inline=True)
+    embed.add_field(name="\u200b", value="\u200b", inline=True)
 
-            embed.add_field(name="CPU", value=f"{cpu_usage}%", inline=True)
-            embed.add_field(name="RAM", value=f"{ram_usage}%", inline=True)
-            embed.add_field(name="RAM", value=f"{ram_real} MB", inline=True)
+    if interaction.user.id == int(OWNERID):
+        # Add CPU and RAM usage
+        process = psutil.Process(os.getpid())
+        cpu_usage = process.cpu_percent()
+        ram_usage = round(process.memory_percent(), 2)
+        ram_real = round(process.memory_info().rss / (1024 ** 2), 2)
 
-        await interaction.response.send_message(embed=embed)
+        embed.add_field(name="CPU", value=f"{cpu_usage}%", inline=True)
+        embed.add_field(name="RAM", value=f"{ram_usage}%", inline=True)
+        embed.add_field(name="RAM", value=f"{ram_real} MB", inline=True)
+
+    await interaction.followup.send(embed=embed)
 
 
 
