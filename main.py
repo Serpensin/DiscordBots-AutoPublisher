@@ -23,7 +23,7 @@ from dotenv import load_dotenv
 # Init
 discord.VoiceClient.warn_nacl = False
 load_dotenv()
-BOT_VERSION = "1.7.9"
+BOT_VERSION = "1.7.10"
 APP_FOLDER_NAME = "AutoPublisher"
 BOT_NAME = "AutoPublisher"
 if not os.path.exists(f"{APP_FOLDER_NAME}//Logs"):
@@ -64,7 +64,7 @@ LOG_LEVEL = os.getenv("LOG_LEVEL")
 # Set-up Logging
 LOG_FOLDER = f"{APP_FOLDER_NAME}//Logs//"
 BUFFER_FOLDER = f"{APP_FOLDER_NAME}//Buffer//"
-log_manager = log_handler.LogManager(LOG_FOLDER, BOT_NAME, LOG_LEVEL)
+log_manager = log_handler.LogManager(log_folder=LOG_FOLDER, app_folder_name=BOT_NAME, log_level=LOG_LEVEL)
 discord_logger = log_manager.get_logger("discord")
 program_logger = log_manager.get_logger("Program")
 program_logger.info("Engine powering up...")

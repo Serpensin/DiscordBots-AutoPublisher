@@ -6,7 +6,7 @@ attrs
 certifi
 charset-normalizer
 colorama
-CustomModules[log_handler,bot_directory]
+CustomModules[loghandler,botdirectory]
 discord.py>2.0.0
 frozenlist
 idna
