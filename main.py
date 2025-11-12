@@ -331,10 +331,10 @@ class aclient(discord.AutoShardedClient):
 
         # Start background tasks
         stats = bot_directory.Stats(
-            bot=bot, logger=program_logger, TOPGG_TOKEN=TOPGG_TOKEN
+            bot=bot, logger=program_logger, topgg_token=TOPGG_TOKEN
         )
         bot.loop.create_task(Functions.health_server())
-        bot.loop.create_task(stats.task())
+        stats.start_stats_update()
 
         program_logger.info("All systems online...")
         start_time = datetime.datetime.now()
