@@ -24,7 +24,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 #Init
 discord.VoiceClient.warn_nacl = False
 load_dotenv()
-BOT_VERSION = '1.7.7'
+BOT_VERSION = '1.7.8'
 APP_FOLDER_NAME = 'AutoPublisher'
 BOT_NAME = 'AutoPublisher'
 if not os.path.exists(f'{APP_FOLDER_NAME}//Logs'):
@@ -599,12 +599,18 @@ if support_available:
     @tree.command(name = 'support', description = 'Get invite to our support server.')
     @discord.app_commands.checks.cooldown(1, 60, key=lambda i: (i.user.id))
     async def support_invite_command(interaction: discord.Interaction):
-        await interaction.response.defer(ephemeral = True)
+        await interaction.response.defer(thinking=True)
 
+        if not SUPPORT_ID:
+            await interaction.followup.send('There is no support server setup!', ephemeral=True)
+            return
+        if interaction.guild is None:
+            await interaction.followup.send(await Functions.create_support_invite(interaction), ephemeral=True)
+            return
         if str(interaction.guild.id) != SUPPORT_ID:
-            await interaction.followup.send(await Functions.create_support_invite(interaction), ephemeral = True)
+            await interaction.followup.send(await Functions.create_support_invite(interaction), ephemeral=True)
         else:
-            await interaction.followup.send('You are already in our support server!', ephemeral = True)
+            await interaction.followup.send('You are already in our support server!', ephemeral=True)
 
 
 #Tell user what permissions are required

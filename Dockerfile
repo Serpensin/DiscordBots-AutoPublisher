@@ -2,7 +2,6 @@
 
 WORKDIR /app
 
-COPY CustomModules ./CustomModules
 COPY *.py .
 COPY requirements.txt .
 
@@ -29,6 +28,6 @@ LABEL maintainer="Discord: pika.pika.no.mi (970119359840284743)" \
       description="This bot automatically publishes messages in announcement channels on discord." \
       release=$BUILD_DATE \
       url="https://github.com/Serpensin/DiscordBots-AutoPublisher" \
-      version="1.7.7"
+      version="1.7.8"
 
 CMD ["python3", "main.py"]
