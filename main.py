@@ -1,4 +1,4 @@
-﻿# Import
+# Import
 import time
 
 startupTime_start = time.time()
@@ -23,7 +23,7 @@ from dotenv import load_dotenv
 # Init
 discord.VoiceClient.warn_nacl = False
 load_dotenv()
-BOT_VERSION = "1.7.10"
+BOT_VERSION = "1.7.11"
 APP_FOLDER_NAME = "AutoPublisher"
 BOT_NAME = "AutoPublisher"
 if not os.path.exists(f"{APP_FOLDER_NAME}//Logs"):
@@ -60,6 +60,7 @@ OWNERID = os.environ.get("OWNER_ID")
 SUPPORT_ID = os.getenv("SUPPORT_SERVER")
 TOPGG_TOKEN = os.getenv("TOPGG_TOKEN")
 LOG_LEVEL = os.getenv("LOG_LEVEL")
+PUBLISH_DELAY_SECONDS = 10
 
 # Set-up Logging
 LOG_FOLDER = f"{APP_FOLDER_NAME}//Logs//"
@@ -394,6 +395,7 @@ class Functions:
             await message.add_reaction("\U0001f4e2")  # 📢
 
         try:
+            await asyncio.sleep(PUBLISH_DELAY_SECONDS)
             await message.publish()
         except discord.HTTPException as e:
             if e.code == 50068:
