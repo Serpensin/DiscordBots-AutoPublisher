@@ -10,6 +10,7 @@ services:
       - SENTRY_DSN=SENTR_KEY
       - SUPPORT_SERVER=DISCORD-ID-SUPPORTSERVER
       - LOG_LEVEL=Info
+      - PUBLISH_DELAY_SECONDS=10
     volumes:
       - data:/app/AutoPublisher
     healthcheck:

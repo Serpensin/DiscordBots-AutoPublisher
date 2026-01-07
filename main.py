@@ -23,7 +23,7 @@ from dotenv import load_dotenv
 # Init
 discord.VoiceClient.warn_nacl = False
 load_dotenv()
-BOT_VERSION = "1.7.11"
+BOT_VERSION = "1.7.12"
 APP_FOLDER_NAME = "AutoPublisher"
 BOT_NAME = "AutoPublisher"
 if not os.path.exists(f"{APP_FOLDER_NAME}//Logs"):
@@ -60,7 +60,7 @@ OWNERID = os.environ.get("OWNER_ID")
 SUPPORT_ID = os.getenv("SUPPORT_SERVER")
 TOPGG_TOKEN = os.getenv("TOPGG_TOKEN")
 LOG_LEVEL = os.getenv("LOG_LEVEL")
-PUBLISH_DELAY_SECONDS = 10
+PUBLISH_DELAY_SECONDS = int(os.getenv("PUBLISH_DELAY_SECONDS", 1))
 
 # Set-up Logging
 LOG_FOLDER = f"{APP_FOLDER_NAME}//Logs//"

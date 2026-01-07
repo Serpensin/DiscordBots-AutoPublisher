@@ -17,8 +17,9 @@ A bot that will automatically publish every new message in your [announcement/ne
 3. Open a terminal in the cloned folder where you cloned the repository or extracted the zip file.
 4. Run `pip install -r requirements.txt` to install the dependencies.
 5. Open the file ".env.template" and complete all variables:
-   - `TOKEN`: The token of your bot. Obtain it from the [Discord Developer Portal](https://discord.com/developers/applications).
+   - `TOKEN`: The token of your bot. Obtain it from the [Discord Developer Portal](https://discord.com/en/developers/applications).
    - `OWNER_ID`: Your Discord ID.
+   - `PUBLISH_DELAY_SECONDS`: (Optional) Delay in seconds before publishing messages. Defaults to 10. Useful for preventing rate limiting issues.
 6. Rename the file ".env.template" to ".env".
 7. Run `python3 main.py` or `python main.py` to start the bot.
 
@@ -32,7 +33,7 @@ If you have cloned the repository, you will find a docker-compose.yml file in th
 
 2. Navigate to the folder where you cloned the repository or extracted the zip file.
 
-3. Open the `docker-compose.yml` file and update the environment variables as needed (such as `TOKEN` and `OWNER_ID`).
+3. Open the `docker-compose.yml` file and update the environment variables as needed (such as `TOKEN`, `OWNER_ID`, and optionally `PUBLISH_DELAY_SECONDS`).
 
 4. In the terminal, run the following command from the folder to start the bot:
 `docker-compose up -d`
@@ -50,6 +51,7 @@ If you have cloned the repository, you will find a docker-compose.yml file in th
 docker run -d \
 -e TOKEN=BOT_TOKEN \
 -e OWNER_ID=DISCORD_ID_OF_OWNER \
+-e PUBLISH_DELAY_SECONDS=10 \
 --name AutoPublisher \
 --restart any \
 -v autopublisher_log:/app/AutoPublisher/Logs \
